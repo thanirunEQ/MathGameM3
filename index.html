@@ -16,15 +16,28 @@
             --font-display: 'Prompt', sans-serif;
             --font-body: 'Sarabun', sans-serif;
         }
+        /* ขยายขนาดตัวอักษรพื้นฐานให้ใหญ่ชัดเจนทั้งบนมือถือและจอทีวี */
+        html {
+            font-size: 19px;
+        }
+        @media (min-width: 768px) {
+            html {
+                font-size: 20px;
+            }
+        }
         body {
             font-family: var(--font-display);
             background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 100%);
             color: #f8fafc;
             min-height: 100vh;
             overflow-x: hidden;
+            line-height: 1.6;
         }
         .font-sarabun {
             font-family: var(--font-body);
+        }
+        input, select, button {
+            font-size: inherit;
         }
 
         /* Arcade 3D Button Styling */
@@ -90,28 +103,6 @@
             pointer-events: none;
             z-index: 60;
         }
-        /* ขยายขนาดตัวอักษรทั้งหน้าเว็บให้อ่านง่ายขึ้น */
-html {
-  font-size: 20px !important; /* ปรับเลข 20px เป็น 22px ได้ถ้าอยากให้ใหญ่ขึ้นอีก */
-}
-
-/* ขยายตัวอักษรในกล่องโจทย์สมการ */
-.question-text, #question-text, h2, h3 {
-  font-size: 1.35rem !important;
-  line-height: 1.6 !important;
-}
-
-/* ขยายตัวอักษรในปุ่มตัวเลือกคำตอบ */
-.option-btn, button {
-  font-size: 1.15rem !important;
-  padding: 14px 18px !important;
-}
-
-/* ขยายตัวอักษรในกล่องเฉลยทีละบรรทัด */
-.explanation-box, #explanation-box, p, li {
-  font-size: 1.1rem !important;
-  line-height: 1.7 !important;
-}
     </style>
 </head>
 <body class="flex flex-col justify-between min-h-screen">
@@ -127,10 +118,10 @@ html {
 
     <!-- ==================== TOP HEADER BAR ==================== -->
     <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/30 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2.5">
             <!-- Brand Logo & Title -->
             <button onclick="goHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center shadow-lg group-hover:scale-105 transition flex-shrink-0">
                     <span class="text-xl font-extrabold text-white">∑</span>
                 </div>
                 <div>
@@ -143,6 +134,19 @@ html {
 
             <!-- Teacher & Classroom Controls -->
             <div class="flex flex-wrap items-center gap-2">
+                <!-- Font Size Adjuster [ ก- | 100% | ก+ ] -->
+                <div class="flex items-center bg-slate-800 border border-cyan-500/50 rounded-xl overflow-hidden shadow-inner" title="ปรับขนาดตัวอักษร">
+                    <button onclick="changeFontScale(-10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" aria-label="ลดขนาดตัวอักษร">
+                        ก-
+                    </button>
+                    <button onclick="resetFontScale()" id="font-scale-label" class="px-2 py-1.5 text-white font-bold text-xs border-x border-slate-700 hover:bg-slate-700/60 transition min-w-[3.1rem] text-center" title="คลิกเพื่อรีเซ็ตเป็น 100%">
+                        100%
+                    </button>
+                    <button onclick="changeFontScale(10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" aria-label="เพิ่มขนาดตัวอักษร">
+                        ก+
+                    </button>
+                </div>
+
                 <!-- Google Sheets Config Button -->
                 <button onclick="openSheetsModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
                     <span>⚙️</span>
@@ -551,35 +555,35 @@ html {
                         <select id="boss-step-1" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
                             <option value="">-- เลือกเลข --</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="7000">7000</option>
+                            <option value="80">80</option>
+                            <option value="120">120</option>
+                            <option value="4600">4600</option>
                         </select>
                     </div>
 
                     <!-- Step 2 -->
                     <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 2</span>
-                        <span>สมการจำนวนเงินคือ <strong>200x + 100y = 7,000</strong> (สมการ ②) อยากทำหน้า y ให้เป็น 100y เท่ากัน ต้องนำเลข</span>
+                        <span>สมการจำนวนเงินคือ <strong>120x + 80y = 4,600</strong> (สมการ ②) อยากทำหน้า y ให้เป็น 80y เท่ากัน ต้องนำเลข</span>
                         <select id="boss-step-2" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
                             <option value="">-- เลือกตัวคูณ --</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
+                            <option value="80">80</option>
+                            <option value="120">120</option>
                         </select>
-                        <span>คูณสมการ ① ตลอด (จะได้ 100x + 100y = 5,000)</span>
+                        <span>คูณสมการ ① ตลอด (จะได้ 80x + 80y = 4,000)</span>
                     </div>
 
                     <!-- Step 3 -->
                     <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 3</span>
-                        <span>นำสมการเงินลบสมการใหม่: <strong>(200x − 100x) = 7,000 − 5,000</strong> ➔ 100x = 2,000 ดังนั้นได้ค่า <strong>x (บัตร VIP) =</strong></span>
+                        <span>นำสมการเงินลบสมการใหม่: <strong>(120x − 80x) = 4,600 − 4,000</strong> ➔ 40x = 600 ดังนั้นได้ค่า <strong>x (บัตร VIP) =</strong></span>
                         <select id="boss-step-3" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
                             <option value="">-- เลือกค่า x --</option>
                             <option value="10">10 ใบ</option>
-                            <option value="20">20 ใบ</option>
-                            <option value="30">30 ใบ</option>
-                            <option value="40">40 ใบ</option>
+                            <option value="15">15 ใบ</option>
+                            <option value="25">25 ใบ</option>
+                            <option value="35">35 ใบ</option>
                         </select>
                     </div>
 
@@ -589,9 +593,9 @@ html {
                         <span>นำค่า x แทนในสมการ ① (x + y = 50) จะได้จำนวนบัตรธรรมดา <strong>y =</strong></span>
                         <select id="boss-step-4" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
                             <option value="">-- เลือกค่า y --</option>
-                            <option value="10">10 ใบ</option>
-                            <option value="20">20 ใบ</option>
-                            <option value="30">30 ใบ</option>
+                            <option value="15">15 ใบ</option>
+                            <option value="25">25 ใบ</option>
+                            <option value="35">35 ใบ</option>
                             <option value="40">40 ใบ</option>
                         </select>
                     </div>
@@ -779,85 +783,13 @@ html {
                         🧪 ทดสอบส่งข้อมูล
                     </button>
                 </div>
-                <p id="webapp-url-status" class="text-xs text-slate-400 font-sarabun">
-                    สถานะปัจจุบัน: ยังไม่ได้เชื่อมต่อ (ระบบจะบันทึกคะแนนสำรองไว้ในเครื่องอัตโนมัติ)
-                </p>
-            </div>
-
-            <!-- 4-Step Setup Guide & Copy Code.gs -->
-            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-sm font-bold text-indigo-300">
-                        2. วิธีติดตั้ง Google Sheets 4 ขั้นตอน (ทำครั้งเดียวใช้ได้ทั้งเทอม)
-                    </span>
-                    <button onclick="copyAppsScriptCode()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow btn-arcade">
-                        📋 คัดลอกโค้ด Apps Script (Code.gs)
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <p id="webapp-url-status" class="text-xs text-slate-400 font-sarabun">
+                        สถานะปัจจุบัน: ยังไม่ได้เชื่อมต่อ (ระบบจะบันทึกคะแนนสำรองไว้ในเครื่องอัตโนมัติ)
+                    </p>
+                    <button onclick="copyStudentShareLink()" class="px-3 py-1.5 rounded-xl bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-500/50 text-cyan-200 font-bold text-xs transition">
+                        🔗 คัดลอกลิงก์เกมพร้อมฝัง API ให้นักเรียน
                     </button>
-                </div>
-
-                <ol class="list-decimal list-inside text-xs sm:text-sm text-slate-300 font-sarabun space-y-1.5 pl-1">
-                    <li>สร้างไฟล์ Google Sheets ใหม่ ตั้งชื่อว่า <strong class="text-white">ฐานข้อมูลเก็บคะแนนเกม_ระบบสมการเชิงเส้นสองตัวแปร_ม3</strong></li>
-                    <li>ไปที่เมนูด้านบนเลือก <strong class="text-amber-300">ส่วนขยาย (Extensions) &gt; Apps Script</strong></li>
-                    <li>ลบโค้ดเดิมทั้งหมด แล้วกดปุ่ม <strong class="text-indigo-300">"คัดลอกโค้ด Apps Script (Code.gs)"</strong> ด้านบนมาวางแทนที่ จากนั้นกดบันทึก (💾)</li>
-                    <li>กดปุ่ม <strong class="text-emerald-300">ทำให้ใช้งานได้ (Deploy) &gt; การทำให้ใช้งานได้รายการใหม่ (New deployment)</strong> เลือกประเภทเป็น <strong>เว็บแอป (Web app)</strong> ตั้งค่าผู้มีสิทธิ์เข้าถึงเป็น <strong>ทุกคน (Everyone)</strong> กด Deploy แล้วนำ URL มาวางในช่องด้านบนครับ</li>
-                </ol>
-
-                <!-- Code Preview Box -->
-                <pre id="apps-script-code" class="bg-slate-950 text-emerald-300 p-3 rounded-xl text-xs overflow-x-auto border border-slate-700 font-mono leading-relaxed">function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["วัน-เวลาที่ส่ง", "ชื่อ-นามสกุล", "ชื่อเล่น", "ชั้นเรียน", "เลขที่", "เส้นทางที่เลือก", "คะแนนด่าน1_ทบทวน", "คะแนนด่าน2_แบบทดสอบ", "คะแนนรวม", "ระดับผลการเรียน"]);
-  }
-  var data = JSON.parse(e.postData.contents);
-  sheet.appendRow([
-    new Date().toLocaleString("th-TH"),
-    data.fullName,
-    data.nickName,
-    data.classroom,
-    data.studentNo,
-    data.pathLabel,
-    data.warmupScore,
-    data.quizScore,
-    data.totalScore,
-    data.gradeLabel
-  ]);
-  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
-}</pre>
-            </div>
-
-            <!-- Local Backup Score Log & CSV Download -->
-            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <span class="text-sm font-bold text-amber-300">3. ประวัติคะแนนสำรองในเครื่องนี้ (Local Log)</span>
-                        <span id="local-log-count" class="text-xs text-slate-400 ml-2">(0 รายการ)</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="exportLocalScoresCSV()" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs btn-arcade">
-                            📥 ดาวน์โหลดไฟล์ CSV
-                        </button>
-                        <button onclick="clearLocalLogs()" class="px-3 py-1.5 rounded-xl bg-rose-900/70 hover:bg-rose-800 text-rose-200 font-bold text-xs">
-                            ล้างประวัติ
-                        </button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto max-h-48 border border-slate-700 rounded-xl">
-                    <table class="w-full text-left text-xs font-sarabun">
-                        <thead class="bg-slate-950 text-slate-300 sticky top-0">
-                            <tr>
-                                <th class="p-2">เวลา</th>
-                                <th class="p-2">ชื่อ-นามสกุล</th>
-                                <th class="p-2">ชั้น/เลขที่</th>
-                                <th class="p-2">ด่าน 1</th>
-                                <th class="p-2">ด่าน 2</th>
-                                <th class="p-2">รวม</th>
-                            </tr>
-                        </thead>
-                        <tbody id="local-log-tbody" class="divide-y divide-slate-700/70 text-slate-200">
-                            <tr><td colspan="6" class="p-3 text-center text-slate-400">ยังไม่มีประวัติการบันทึกคะแนนในเครื่องนี้</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
@@ -1265,12 +1197,12 @@ html {
                 category: "👑 ข้อบอส: แสดงวิธีทำแบบเติมตัวเลขทีละขั้น",
                 isBoss: true,
                 svg: null,
-                question: "โรงภาพยนตร์ขายบัตร VIP ใบละ 200 บาท และบัตรธรรมดาใบละ 100 บาท ขายได้ทั้งหมด 50 ใบ เป็นเงิน 7,000 บาท จงเติมตัวเลขในแต่ละขั้นตอนให้สมบูรณ์",
+                question: "โรงภาพยนตร์ขายบัตร VIP ใบละ 120 บาท และบัตรธรรมดาใบละ 80 บาท ขายได้ทั้งหมด 50 ใบ เป็นเงิน 4,600 บาท จงเติมตัวเลขในแต่ละขั้นตอนให้สมบูรณ์",
                 steps: [
                     "ขั้นที่ 1 สมการจำนวนบัตรรวม: x + y = 50 (เพราะขายบัตรสองแบบรวมกันได้ 50 ใบ)",
-                    "ขั้นที่ 2 สมการเงินคือ 200x + 100y = 7,000 จึงนำ 100 คูณสมการ ① ตลอด เพื่อปั้นหน้า y ให้เป็น 100y เท่ากัน (ได้ 100x + 100y = 5,000)",
-                    "ขั้นที่ 3 นำสมการเงินลบสมการใหม่: (200x - 100x) = 7,000 - 5,000 ➔ 100x = 2,000 ย้าย 100 ไปหารได้ x = 20 ใบ (บัตร VIP)",
-                    "ขั้นที่ 4 แทน x = 20 ในสมการ ① (20 + y = 50) ย้าย 20 ไปลบได้ y = 30 ใบ (บัตรธรรมดา) ครับ"
+                    "ขั้นที่ 2 สมการเงินคือ 120x + 80y = 4,600 จึงนำ 80 คูณสมการ ① ตลอด เพื่อปั้นหน้า y ให้เป็น 80y เท่ากัน (ได้ 80x + 80y = 4,000)",
+                    "ขั้นที่ 3 นำสมการเงินลบสมการใหม่: (120x - 80x) = 4,600 - 4,000 ➔ 40x = 600 ย้าย 40 ไปหารได้ x = 15 ใบ (บัตร VIP)",
+                    "ขั้นที่ 4 แทน x = 15 ในสมการ ① (15 + y = 50) ย้าย 15 ไปลบได้ y = 35 ใบ (บัตรธรรมดา) ครับ"
                 ]
             }
         ];
@@ -1348,10 +1280,36 @@ html {
         }
 
         /* ============================================================================
-           5. APPLICATION STATE & STORAGE KEYS
+           5. APPLICATION STATE, FONT SCALING & STORAGE KEYS
            ============================================================================ */
         const STORAGE_URL_KEY = 'math_m3_gsheets_webapp_url';
         const STORAGE_LOGS_KEY = 'math_m3_local_score_logs';
+        const STORAGE_FONT_SCALE_KEY = 'math_m3_font_scale_pct';
+
+        let currentFontScale = 100;
+
+        function applyFontScale(pct) {
+            currentFontScale = Math.max(85, Math.min(145, pct));
+            const basePx = window.innerWidth >= 768 ? 20 : 19;
+            const computedPx = (basePx * (currentFontScale / 100)).toFixed(2);
+            document.documentElement.style.fontSize = `${computedPx}px`;
+            const lbl = document.getElementById('font-scale-label');
+            if (lbl) lbl.textContent = `${currentFontScale}%`;
+            localStorage.setItem(STORAGE_FONT_SCALE_KEY, String(currentFontScale));
+        }
+
+        function changeFontScale(delta) {
+            SFX.click();
+            applyFontScale(currentFontScale + delta);
+        }
+
+        function resetFontScale() {
+            SFX.click();
+            applyFontScale(100);
+            showToast('รีเซ็ตขนาดตัวอักษรเป็น 100% เรียบร้อยแล้ว', '🔎');
+        }
+
+        window.addEventListener('resize', () => applyFontScale(currentFontScale));
 
         const appState = {
             path: 'full', // 'full' | 'quiz_only' | 'team_battle'
@@ -1830,9 +1788,9 @@ html {
 
             const answers = [
                 { id: 'boss-step-1', val: s1, correct: '50' },
-                { id: 'boss-step-2', val: s2, correct: '100' },
-                { id: 'boss-step-3', val: s3, correct: '20' },
-                { id: 'boss-step-4', val: s4, correct: '30' }
+                { id: 'boss-step-2', val: s2, correct: '80' },
+                { id: 'boss-step-3', val: s3, correct: '15' },
+                { id: 'boss-step-4', val: s4, correct: '35' }
             ];
 
             let correctSteps = 0;
@@ -1867,7 +1825,7 @@ html {
             showQuizExplanation(
                 correctSteps === 4,
                 `ทำถูก ${correctSteps} / 4 ขั้นตอน (ได้รับ +${earned} คะแนน)`,
-                'บัตร VIP (x) = 20 ใบ และบัตรธรรมดา (y) = 30 ใบ',
+                'บัตร VIP (x) = 15 ใบ และบัตรธรรมดา (y) = 35 ใบ',
                 q.steps
             );
         }
@@ -2129,8 +2087,27 @@ html {
 
         function copyAppsScriptCode() {
             const codeText = document.getElementById('apps-script-code').textContent;
+            copyTextSafe(codeText, 'คัดลอกโค้ด Apps Script (Code.gs) เรียบร้อยแล้ว!');
+        }
+
+        function copyStudentShareLink() {
+            const apiUrl = (document.getElementById('input-webapp-url').value || localStorage.getItem(STORAGE_URL_KEY) || '').trim();
+            if (!apiUrl) {
+                showToast('กรุณาวางและบันทึกลิงก์ Web App URL ด้านบนก่อนคัดลอกลิงก์แชร์ครับ', '⚠️');
+                return;
+            }
+            if (!window.location.href.startsWith('http')) {
+                showToast('กรุณาอัปโหลดไฟล์ขึ้นเว็บไซต์ (เช่น GitHub Pages) ก่อนสร้างลิงก์แชร์ให้นักเรียนครับ', 'ℹ️');
+                return;
+            }
+            const shareUrl = new URL(window.location.href);
+            shareUrl.searchParams.set('api', apiUrl);
+            copyTextSafe(shareUrl.toString(), 'คัดลอกลิงก์เกมพร้อมฝังฐานข้อมูลให้นักเรียนแล้ว!');
+        }
+
+        function copyTextSafe(text, successMsg) {
             const textarea = document.createElement('textarea');
-            textarea.value = codeText;
+            textarea.value = text;
             textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
@@ -2138,9 +2115,9 @@ html {
             try {
                 document.execCommand('copy');
                 SFX.lifeline();
-                showToast('คัดลอกโค้ด Apps Script (Code.gs) เรียบร้อยแล้ว!', '📋');
+                showToast(successMsg, '📋');
             } catch (err) {
-                showToast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาลากคลุมโค้ดแล้วกด Ctrl+C', '⚠️');
+                showToast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาลากคลุมแล้วกด Ctrl+C', '⚠️');
             }
             document.body.removeChild(textarea);
         }
@@ -2234,7 +2211,7 @@ html {
 
                 container.innerHTML = QUIZ_QUESTIONS.map((q, idx) => {
                     const ansText = q.isBoss
-                        ? 'สมการ ①: 50 | ตัวคูณ: 100 | บัตร VIP (x) = 20 ใบ | บัตรธรรมดา (y) = 30 ใบ'
+                        ? 'สมการ ①: 50 | ตัวคูณ: 80 | บัตร VIP (x) = 15 ใบ | บัตรธรรมดา (y) = 35 ใบ'
                         : q.choices[q.correctIndex];
                     return `
                         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5 space-y-2.5">
@@ -2321,6 +2298,17 @@ html {
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // 1. Restore saved font scale
+            const savedScale = parseInt(localStorage.getItem(STORAGE_FONT_SCALE_KEY) || '100', 10);
+            applyFontScale(isNaN(savedScale) ? 100 : savedScale);
+
+            // 2. Auto-detect ?api=URL parameter from shared teacher link
+            const params = new URLSearchParams(window.location.search);
+            const apiFromParam = (params.get('api') || '').trim();
+            if (apiFromParam && apiFromParam.startsWith('http')) {
+                localStorage.setItem(STORAGE_URL_KEY, apiFromParam);
+            }
+
             const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || '';
             updateWebAppStatusText(savedUrl);
         });
