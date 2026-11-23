@@ -90,6 +90,28 @@
             pointer-events: none;
             z-index: 60;
         }
+        /* ขยายขนาดตัวอักษรทั้งหน้าเว็บให้อ่านง่ายขึ้น */
+html {
+  font-size: 20px !important; /* ปรับเลข 20px เป็น 22px ได้ถ้าอยากให้ใหญ่ขึ้นอีก */
+}
+
+/* ขยายตัวอักษรในกล่องโจทย์สมการ */
+.question-text, #question-text, h2, h3 {
+  font-size: 1.35rem !important;
+  line-height: 1.6 !important;
+}
+
+/* ขยายตัวอักษรในปุ่มตัวเลือกคำตอบ */
+.option-btn, button {
+  font-size: 1.15rem !important;
+  padding: 14px 18px !important;
+}
+
+/* ขยายตัวอักษรในกล่องเฉลยทีละบรรทัด */
+.explanation-box, #explanation-box, p, li {
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+}
     </style>
 </head>
 <body class="flex flex-col justify-between min-h-screen">
