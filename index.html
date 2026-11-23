@@ -118,58 +118,58 @@
 
     <!-- ==================== TOP HEADER BAR ==================== -->
     <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/30 sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2.5">
-            <!-- Brand Logo & Title -->
-            <button onclick="goHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
-                <!-- Google Sheets Config Button (Protected by Teacher PIN) -->
-                <button onclick="requestTeacherAccess('sheets')" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
-                    <span id="lock-icon-sheets">🔒</span>
-                    <span>เชื่อมต่อ Google Sheets</span>
-                    <span id="sheets-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-                </button>
-
-                <!-- Teacher Cheat Sheet Button (Protected by Teacher PIN) -->
-                <button onclick="requestTeacherAccess('cheatsheet')" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/50 text-xs sm:text-sm font-semibold text-indigo-200 transition">
-                    <span id="lock-icon-cheatsheet">🔒</span>
-                    <span class="hidden sm:inline">คู่มือเฉลยสำหรับครู</span>
-                    <span class="sm:hidden">เฉลยครู</span>
-                </button>
-
-                <!-- Quick Re-Lock Teacher Mode Button (Visible when unlocked) -->
-                <button id="btn-relock-teacher" onclick="relockTeacherMode()" class="hidden items-center gap-1 px-2.5 py-2 rounded-xl bg-amber-950/90 hover:bg-amber-900 border border-amber-500/50 text-xs font-bold text-amber-300 transition" title="ล็อคสิทธิ์ครูกลับทันที">
-                    <span>🔓</span>
-                    <span class="hidden md:inline">ล็อคกลับ</span>
-                </button>
-                    <button onclick="resetFontScale()" id="font-scale-label" class="px-2 py-1.5 text-white font-bold text-xs border-x border-slate-700 hover:bg-slate-700/60 transition min-w-[3.1rem] text-center" title="คลิกเพื่อรีเซ็ตเป็น 100%">
-                        100%
-                    </button>
-                    <button onclick="changeFontScale(10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" aria-label="เพิ่มขนาดตัวอักษร">
-                        ก+
-                    </button>
-                </div>
-
-                <!-- Google Sheets Config Button -->
-                <button onclick="openSheetsModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
-                    <span>⚙️</span>
-                    <span>เชื่อมต่อ Google Sheets</span>
-                    <span id="sheets-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-                </button>
-
-                <!-- Teacher Cheat Sheet Button -->
-                <button onclick="openCheatSheet()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/50 text-xs sm:text-sm font-semibold text-indigo-200 transition">
-                    <span>📖</span>
-                    <span class="hidden sm:inline">คู่มือเฉลยสำหรับครู</span>
-                    <span class="sm:hidden">เฉลยครู</span>
+    <!-- ==================== TOP HEADER BAR (SINGLE COMPACT ROW) ==================== -->
+    <header class="w-full bg-slate-900/95 backdrop-blur-md border-b border-indigo-500/30 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
+            
+            <!-- Left Side: Home/Sound & Font Size Capsule [ ก- | 100% | ก+ ] -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <!-- Return Home Button (Shown during game) -->
+                <button id="btn-nav-home" onclick="goHome()" class="hidden items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-xs sm:text-sm font-bold text-white transition shadow">
+                    <span>🏠</span>
+                    <span class="hidden sm:inline">หน้าหลัก</span>
                 </button>
 
                 <!-- Sound Mute/Unmute -->
-                <button onclick="toggleSound()" class="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs sm:text-sm font-semibold text-amber-300 transition" title="เปิด/ปิดเสียงเอฟเฟกต์">
+                <button onclick="toggleSound()" class="flex items-center justify-center w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-sm font-semibold text-amber-300 transition" title="เปิด/ปิดเสียงเอฟเฟกต์">
                     <span id="sound-icon">🔊</span>
                 </button>
 
-                <!-- Return Home Button (Shown during game) -->
-                <button id="btn-nav-home" onclick="goHome()" class="hidden px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-xs sm:text-sm font-bold text-white transition">
-                    🏠 หน้าหลัก
+                <!-- Compact Font Scale Capsule [ ก- | 100% | ก+ ] -->
+                <div class="inline-flex items-center bg-slate-800 border border-slate-600 rounded-xl overflow-hidden shadow-inner">
+                    <button onclick="changeFontScale(-10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" title="ลดขนาดตัวอักษร" aria-label="ลดขนาดตัวอักษร">
+                        ก-
+                    </button>
+                    <button onclick="resetFontScale()" id="font-scale-label" class="px-2 py-1.5 text-white font-bold text-xs border-x border-slate-700 hover:bg-slate-700/60 transition min-w-[2.9rem] text-center" title="คลิกเพื่อรีเซ็ตเป็น 100%">
+                        100%
+                    </button>
+                    <button onclick="changeFontScale(10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" title="เพิ่มขนาดตัวอักษร" aria-label="เพิ่มขนาดตัวอักษร">
+                        ก+
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: PIN-Protected Teacher Controls Only -->
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <!-- Google Sheets Config Button (Protected by Teacher PIN 6311) -->
+                <button onclick="requestTeacherAccess('sheets')" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
+                    <span id="lock-icon-sheets">🔒</span>
+                    <span class="hidden md:inline">เชื่อมต่อ Google Sheets</span>
+                    <span class="md:hidden">Sheets</span>
+                    <span id="sheets-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                </button>
+
+                <!-- Teacher Cheat Sheet Button (Protected by Teacher PIN 6311) -->
+                <button onclick="requestTeacherAccess('cheatsheet')" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/50 text-xs sm:text-sm font-semibold text-indigo-200 transition">
+                    <span id="lock-icon-cheatsheet">🔒</span>
+                    <span class="hidden md:inline">คู่มือเฉลยสำหรับครู</span>
+                    <span class="md:hidden">เฉลยครู</span>
+                </button>
+
+                <!-- Quick Re-Lock Teacher Mode Button (Visible when unlocked) -->
+                <button id="btn-relock-teacher" onclick="relockTeacherMode()" class="hidden items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-950/90 hover:bg-amber-900 border border-amber-500/50 text-xs font-bold text-amber-300 transition" title="ล็อคสิทธิ์ครูกลับทันที">
+                    <span>🔓</span>
+                    <span class="hidden sm:inline">ล็อคกลับ</span>
                 </button>
             </div>
         </div>
@@ -777,6 +777,103 @@
                         🔒 ล็อคสิทธิ์ครู
                     </button>
                     <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+                </div>
+            </div>
+
+            <!-- Step 1: Web App URL Configuration -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                <div class="font-bold text-white text-base">1. วางลิงก์ Google Apps Script Web App URL</div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input id="input-webapp-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-600 text-emerald-300 text-xs sm:text-sm font-sarabun focus:border-emerald-400 focus:outline-none">
+                    <button onclick="saveWebAppUrl()" class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm btn-arcade">
+                        💾 บันทึกลิงก์
+                    </button>
+                    <button onclick="testSheetsConnection()" class="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs sm:text-sm btn-arcade">
+                        🚀 ทดสอบส่งข้อมูล
+                    </button>
+                </div>
+                <p id="webapp-url-status" class="text-xs font-sarabun text-amber-300">
+                    ⚠️ ยังไม่ได้เชื่อมต่อ: ระบบจะเก็บคะแนนสำรองไว้ในเครื่อง (Local Storage)
+                </p>
+
+                <div class="pt-2 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs text-slate-300 font-sarabun">แชร์ลิงก์ให้นักเรียนเล่นโดยไม่ต้องตั้งค่าเอง:</span>
+                    <button onclick="copyStudentShareLink()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs btn-arcade">
+                        🔗 คัดลอกลิงก์เกมพร้อมฝัง API ให้นักเรียน
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Copy Apps Script Code.gs -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="font-bold text-white text-base">2. โค้ดสำหรับวางใน Apps Script (Code.gs)</div>
+                    <button onclick="copyAppsScriptCode()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs btn-arcade">
+                        📋 คัดลอกโค้ด Code.gs
+                    </button>
+                </div>
+                <pre id="apps-script-code" class="bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-emerald-300 overflow-x-auto font-mono leading-relaxed">function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        'วัน-เวลาที่ส่ง', 'ชื่อ-นามสกุล', 'ชื่อเล่น', 'ชั้นเรียน', 'เลขที่',
+        'เส้นทางที่เลือก', 'คะแนนด่าน 1 (ทบทวน)', 'คะแนนด่าน 2 (แบบทดสอบ)',
+        'คะแนนรวมสุทธิ', 'ระดับผลการประเมิน'
+      ]);
+    }
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.timestamp || new Date().toLocaleString('th-TH'),
+      data.fullName || '',
+      data.nickName || '',
+      data.classroom || '',
+      data.studentNo || '',
+      data.pathLabel || '',
+      data.warmupScore || '',
+      data.quizScore || '',
+      data.totalScore || '',
+      data.gradeLabel || ''
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</pre>
+            </div>
+
+            <!-- Step 3: Local Backup Logs & CSV Export -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="font-bold text-white text-base">
+                        3. ประวัติคะแนนสำรองในเครื่องนี้ <span id="local-log-count" class="text-xs text-cyan-300">(0 รายการ)</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportLocalScoresCSV()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs btn-arcade">
+                            📥 ดาวน์โหลดไฟล์ CSV
+                        </button>
+                        <button onclick="clearLocalLogs()" class="px-3 py-1.5 rounded-xl bg-rose-900/80 hover:bg-rose-800 text-rose-200 font-bold text-xs btn-arcade">
+                            🗑️ ล้างประวัติ
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-48 border border-slate-700 rounded-xl">
+                    <table class="w-full text-left text-xs font-sarabun">
+                        <thead class="bg-slate-950 text-slate-300 sticky top-0">
+                            <tr>
+                                <th class="p-2">เวลา</th>
+                                <th class="p-2">ชื่อ-นามสกุล</th>
+                                <th class="p-2">ชั้น/เลขที่</th>
+                                <th class="p-2">ด่าน 1</th>
+                                <th class="p-2">ด่าน 2</th>
+                                <th class="p-2">รวม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="local-log-tbody" class="divide-y divide-slate-800 text-slate-200">
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -1522,7 +1619,9 @@
             SFX.click();
             hideAllScreens();
             document.getElementById('screen-home').classList.remove('hidden');
-            document.getElementById('btn-nav-home').classList.add('hidden');
+            const homeBtn = document.getElementById('btn-nav-home');
+            homeBtn.classList.add('hidden');
+            homeBtn.classList.remove('inline-flex');
         }
 
         function startLearningPath(pathType) {
@@ -1567,7 +1666,9 @@
             appState.teamRed = { score: 0, correct: 0, used5050: false, usedHint: false };
             appState.teamBlue = { score: 0, correct: 0, used5050: false, usedHint: false };
 
-            document.getElementById('btn-nav-home').classList.remove('hidden');
+            const homeBtn = document.getElementById('btn-nav-home');
+            homeBtn.classList.remove('hidden');
+            homeBtn.classList.add('inline-flex');
 
             if (pathType === 'full') {
                 startStage1Warmup();
@@ -2360,7 +2461,9 @@
             SFX.click();
             hideAllScreens();
             document.getElementById('screen-cheatsheet').classList.remove('hidden');
-            document.getElementById('btn-nav-home').classList.remove('hidden');
+            const homeBtn = document.getElementById('btn-nav-home');
+            homeBtn.classList.remove('hidden');
+            homeBtn.classList.add('inline-flex');
             renderCheatSheet('quiz');
         }
 
