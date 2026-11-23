@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ศึกถอดรหัสสมการ ม.3 — ระบบสมการเชิงเส้นสองตัวแปร</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt & Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-display: 'Prompt', sans-serif;
+            --font-body: 'Sarabun', sans-serif;
+        }
+        body {
+            font-family: var(--font-display);
+            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .font-sarabun {
+            font-family: var(--font-body);
+        }
+
+        /* Arcade 3D Button Styling */
+        .btn-arcade {
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease, box-shadow 0.12s ease;
+        }
+        .btn-arcade:hover:not(:disabled) {
+            transform: translateY(-3px);
+            filter: brightness(1.07);
+        }
+        .btn-arcade:active:not(:disabled) {
+            transform: translateY(3px);
+        }
+        .btn-arcade:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Vibrant Choice Buttons */
+        .choice-red {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 5px 0 #991b1b;
+        }
+        .choice-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 5px 0 #1e40af;
+        }
+        .choice-yellow {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 5px 0 #92400e;
+        }
+        .choice-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 5px 0 #065f46;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.94) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+        .animate-pop {
+            animation: popIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 60;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen">
+
+    <!-- Confetti Celebration Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Toast Notification Banner (Replaces alert()) -->
+    <div id="toast-box" class="hidden fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 border-2 border-emerald-400 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-pop">
+        <span id="toast-icon" class="text-xl">✅</span>
+        <span id="toast-message" class="text-sm font-medium font-sarabun">แจ้งเตือน</span>
+    </div>
+
+    <!-- ==================== TOP HEADER BAR ==================== -->
+    <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-indigo-500/30 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <!-- Brand Logo & Title -->
+            <button onclick="goHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+                    <span class="text-xl font-extrabold text-white">∑</span>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
+                        ศึกถอดรหัสสมการ ม.3
+                    </h1>
+                    <p class="text-xs text-emerald-300">ระบบสมการเชิงเส้นสองตัวแปร • ฉบับเข้าใจง่าย</p>
+                </div>
+            </button>
+
+            <!-- Teacher & Classroom Controls -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Google Sheets Config Button -->
+                <button onclick="openSheetsModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
+                    <span>⚙️</span>
+                    <span>เชื่อมต่อ Google Sheets</span>
+                    <span id="sheets-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                </button>
+
+                <!-- Teacher Cheat Sheet Button -->
+                <button onclick="openCheatSheet()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/50 text-xs sm:text-sm font-semibold text-indigo-200 transition">
+                    <span>📖</span>
+                    <span class="hidden sm:inline">คู่มือเฉลยสำหรับครู</span>
+                    <span class="sm:hidden">เฉลยครู</span>
+                </button>
+
+                <!-- Sound Mute/Unmute -->
+                <button onclick="toggleSound()" class="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs sm:text-sm font-semibold text-amber-300 transition" title="เปิด/ปิดเสียงเอฟเฟกต์">
+                    <span id="sound-icon">🔊</span>
+                </button>
+
+                <!-- Return Home Button (Shown during game) -->
+                <button id="btn-nav-home" onclick="goHome()" class="hidden px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-xs sm:text-sm font-bold text-white transition">
+                    🏠 หน้าหลัก
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 flex flex-col justify-center">
+
+        <!-- ==================== 1. MAIN MENU & PLAYER INFO ==================== -->
+        <section id="screen-home" class="animate-pop space-y-6 max-w-5xl mx-auto w-full">
+            
+            <!-- Hero Header -->
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 text-xs sm:text-sm font-semibold">
+                    <span>🎮 สื่อการเรียนรู้คณิตศาสตร์ ม.3</span>
+                    <span>•</span>
+                    <span>พร้อมเฉลยที่มาของตัวเลขทีละบรรทัด</span>
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-300 to-emerald-300 leading-tight py-1">
+                    ระบบสมการเชิงเส้นสองตัวแปร
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto font-sarabun">
+                    ฝึกพื้นฐานผ่านมินิเกม 3 ฐาน ก่อนลุยแบบทดสอบท้ายบทฉบับปรับให้ง่าย พร้อมส่งคะแนนเข้าฐานข้อมูล Google Sheets ของคุณครูอัตโนมัติ
+                </p>
+            </div>
+
+            <!-- Student Info Registration Card -->
+            <div class="bg-slate-800/90 border-2 border-indigo-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-700">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🪪</span>
+                        <h3 class="text-lg sm:text-xl font-bold text-white">ข้อมูลผู้เข้าเรียน (สำหรับบันทึกคะแนน)</h3>
+                    </div>
+                    <span class="text-xs text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full">
+                        กรอกข้อมูลก่อนเลือกเส้นทางด้านล่าง
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-indigo-200 mb-1">ชื่อ - นามสกุล *</label>
+                        <input id="input-fullname" type="text" placeholder="เช่น ด.ช.รักเรียน ขยันยิ่ง" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-emerald-400 focus:outline-none text-sm sm:text-base font-sarabun">
+                    </div>
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-indigo-200 mb-1">ชื่อเล่น</label>
+                        <input id="input-nickname" type="text" placeholder="เช่น ต้นกล้า" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-emerald-400 focus:outline-none text-sm sm:text-base font-sarabun">
+                    </div>
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-indigo-200 mb-1">ชั้นเรียน *</label>
+                        <input id="input-classroom" type="text" placeholder="เช่น ม.3/1" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-emerald-400 focus:outline-none text-sm sm:text-base font-sarabun">
+                    </div>
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-indigo-200 mb-1">เลขที่ *</label>
+                        <input id="input-student-no" type="number" min="1" max="60" placeholder="เช่น 15" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-emerald-400 focus:outline-none text-sm sm:text-base font-sarabun">
+                    </div>
+                </div>
+                <p id="form-error-msg" class="hidden text-rose-400 text-xs sm:text-sm font-semibold mt-2.5">
+                    ⚠️ กรุณากรอก ชื่อ-นามสกุล, ชั้นเรียน และเลขที่ ให้ครบถ้วนก่อนเริ่มเกมครับ
+                </p>
+            </div>
+
+            <!-- 3 Learning Paths Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Path 1: Full 2-Stage Journey (Recommended) -->
+                <div class="bg-gradient-to-b from-indigo-900/80 to-slate-800/95 border-2 border-emerald-400 rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-emerald-400 text-slate-950 text-xs font-extrabold shadow">
+                        ⭐ เส้นทางแนะนำ
+                    </div>
+                    <div class="space-y-2.5 pt-2">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-2xl">
+                            🗺️
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white">เส้นทางที่ 1: ลุยครบ 2 ด่าน</h3>
+                        <div class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-950 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                            คะแนนเต็ม 21 คะแนน (9 + 12)
+                        </div>
+                        <p class="text-sm text-slate-200 font-sarabun leading-relaxed">
+                            เริ่มจาก <strong>ด่าน 1 มินิเกมทบทวนพื้นฐาน 3 ฐาน (9 คะแนน)</strong> ปูความเข้าใจให้แม่น ก่อนเข้าสู่ <strong>ด่าน 2 แบบทดสอบท้ายบท (12 คะแนน)</strong>
+                        </p>
+                    </div>
+                    <button onclick="startLearningPath('full')" class="mt-6 w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-base shadow-[0_5px_0_#065f46] btn-arcade">
+                        🚀 เริ่มลุยครบ 2 ด่าน!
+                    </button>
+                </div>
+
+                <!-- Path 2: Skip to Post-Test -->
+                <div class="bg-slate-800/90 border-2 border-indigo-500/40 rounded-3xl p-6 flex flex-col justify-between shadow-xl hover:border-indigo-400 transition">
+                    <div class="space-y-2.5 pt-2">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-2xl">
+                            ⚡
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white">เส้นทางที่ 2: ข้ามไปทำแบบทดสอบ</h3>
+                        <div class="inline-block px-2.5 py-0.5 rounded-md bg-indigo-950 text-indigo-300 text-xs font-bold border border-indigo-500/30">
+                            11 ข้อ • คะแนนเต็ม 12 คะแนน
+                        </div>
+                        <p class="text-sm text-slate-300 font-sarabun leading-relaxed">
+                            สำหรับนักเรียนที่ทบทวนเนื้อหามาพร้อมแล้ว สามารถกดข้ามมินิเกมเพื่อเข้าทำแบบทดสอบท้ายบทที่ 1 (ฉบับปรับให้ง่าย) ได้ทันที
+                        </p>
+                    </div>
+                    <button onclick="startLearningPath('quiz_only')" class="mt-6 w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-base shadow-[0_5px_0_#3730a3] btn-arcade">
+                        📝 เข้าทำแบบทดสอบเลย
+                    </button>
+                </div>
+
+                <!-- Path 3: Classroom 2-Team Battle -->
+                <div class="bg-slate-800/90 border-2 border-amber-500/50 rounded-3xl p-6 flex flex-col justify-between shadow-xl hover:border-amber-400 transition">
+                    <div class="space-y-2.5 pt-2">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-2xl">
+                            ⚔️
+                        </div>
+                        <h3 class="text-xl font-extrabold text-white">เส้นทางที่ 3: แข่ง 2 ทีมหน้าชั้น</h3>
+                        <div class="inline-block px-2.5 py-0.5 rounded-md bg-amber-950 text-amber-300 text-xs font-bold border border-amber-500/30">
+                            ทีมแดง vs ทีมน้ำเงิน (โหมดโปรเจกเตอร์)
+                        </div>
+                        <p class="text-sm text-slate-300 font-sarabun leading-relaxed">
+                            สำหรับครูฉายขึ้นจอทีวี! แบ่งนักเรียนเป็น 2 ฝั่ง ผลัดกันตอบคำถาม 11 ข้อ พร้อมตัวช่วย 50:50 และการ์ดใบ้สูตร (ไม่ต้องกรอกชื่อ)
+                        </p>
+                    </div>
+                    <button onclick="startLearningPath('team_battle')" class="mt-6 w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-500 to-blue-600 text-white font-bold text-base shadow-[0_5px_0_#92400e] btn-arcade">
+                        🔥 เปิดศึก 2 ทีมหน้าห้อง
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. STAGE 1: WARM-UP MINI-GAME (9 QUESTIONS) ==================== -->
+        <section id="screen-warmup" class="hidden animate-pop max-w-4xl mx-auto w-full space-y-4">
+            <!-- Stage 1 Top Status Bar -->
+            <div class="bg-slate-800/95 border border-emerald-500/40 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-extrabold text-xs">
+                            ด่านที่ 1: มินิเกมทบทวนพื้นฐาน
+                        </span>
+                        <span id="wu-base-badge" class="text-xs sm:text-sm font-bold text-cyan-300">
+                            ฐานที่ 1: นักสืบกราฟ
+                        </span>
+                    </div>
+                    <div id="wu-player-label" class="text-xs text-slate-400 mt-1 font-sarabun">ผู้เล่น: -</div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <div class="text-xs text-slate-400">ข้อที่</div>
+                        <div id="wu-progress-text" class="font-extrabold text-white text-lg">1 / 9</div>
+                    </div>
+                    <div class="bg-slate-900 px-4 py-1.5 rounded-xl border border-emerald-500/40 text-center">
+                        <div class="text-xs text-emerald-300">คะแนนด่าน 1</div>
+                        <div id="wu-score-text" class="font-extrabold text-emerald-400 text-xl">0 / 9</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-Base Visual Stepper -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs sm:text-sm font-bold">
+                <div id="stepper-base-1" class="py-2 px-2 rounded-xl bg-cyan-600 text-white border border-cyan-300 shadow">
+                    🔍 ฐาน 1: นักสืบกราฟ (1-3)
+                </div>
+                <div id="stepper-base-2" class="py-2 px-2 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                    🌉 ฐาน 2: สะพานย้ายข้าง (4-6)
+                </div>
+                <div id="stepper-base-3" class="py-2 px-2 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                    👯 ฐาน 3: สร้างฝาแฝด (7-9)
+                </div>
+            </div>
+
+            <!-- Warm-Up Question Card -->
+            <div class="bg-white text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-4 border-cyan-400/40">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <!-- Optional SVG Graph for Base 1 -->
+                    <div id="wu-graph-box" class="hidden w-full md:w-64 flex-shrink-0 flex justify-center bg-slate-50 border-2 border-slate-200 rounded-2xl p-3">
+                    </div>
+
+                    <div class="flex-1 text-center md:text-left space-y-2">
+                        <div id="wu-base-tag" class="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-extrabold">
+                            ฐานที่ 1
+                        </div>
+                        <h3 id="wu-question-text" class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
+                            กำลังโหลดคำถาม...
+                        </h3>
+                        <p id="wu-question-tip" class="text-sm text-slate-600 font-sarabun">
+                            เลือกคำตอบที่ถูกต้องเพื่อรับ 1 คะแนน
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warm-Up 3 Choices Grid -->
+            <div id="wu-choices-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <button id="wu-choice-0" onclick="selectWarmupAnswer(0)" class="choice-blue btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20">
+                    ตัวเลือก 1
+                </button>
+                <button id="wu-choice-1" onclick="selectWarmupAnswer(1)" class="choice-yellow btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20">
+                    ตัวเลือก 2
+                </button>
+                <button id="wu-choice-2" onclick="selectWarmupAnswer(2)" class="choice-green btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20">
+                    ตัวเลือก 3
+                </button>
+            </div>
+
+            <!-- Warm-Up Line-by-Line Explanation Card -->
+            <div id="wu-explanation-box" class="hidden animate-pop bg-slate-900 border-2 border-emerald-400 rounded-3xl p-5 shadow-2xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span id="wu-res-emoji" class="text-3xl">🎉</span>
+                        <div>
+                            <h4 id="wu-res-title" class="text-lg sm:text-xl font-extrabold text-emerald-400">ถูกต้อง! +1 คะแนน</h4>
+                            <p id="wu-res-sub" class="text-sm text-slate-300 font-sarabun">คำตอบที่ถูกต้องคือ ...</p>
+                        </div>
+                    </div>
+                    <button id="btn-wu-next" onclick="nextWarmupQuestion()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-base shadow-[0_4px_0_#065f46] btn-arcade">
+                        ข้อถัดไป ➔
+                    </button>
+                </div>
+
+                <div class="bg-slate-800/90 border border-slate-600 rounded-2xl p-4 space-y-2">
+                    <div class="text-amber-300 font-bold text-sm sm:text-base">💡 อธิบายที่มาของตัวเลขทีละบรรทัด:</div>
+                    <ul id="wu-steps-list" class="space-y-2 text-slate-100 font-sarabun text-sm sm:text-base">
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STAGE 1 COMPLETE INTERMISSION ==================== -->
+        <section id="screen-warmup-done" class="hidden animate-pop max-w-xl mx-auto w-full">
+            <div class="bg-slate-800/95 border-2 border-emerald-400 rounded-3xl p-6 sm:p-8 text-center shadow-2xl space-y-5">
+                <div class="text-5xl">🎯</div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+                    ผ่านด่านที่ 1 เรียบร้อย!
+                </h2>
+                <p class="text-slate-300 font-sarabun text-base">
+                    พื้นฐานแน่นพร้อมลุยสนามจริงแล้ว! คะแนนด่านทบทวนพื้นฐานของคุณคือ
+                </p>
+                <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl py-4 px-6 inline-block">
+                    <div class="text-xs text-slate-400">คะแนนด่านที่ 1 (Warm-Up)</div>
+                    <div id="wu-done-score" class="text-4xl font-extrabold text-emerald-400 mt-1">9 / 9 คะแนน</div>
+                </div>
+                <div class="pt-2">
+                    <button onclick="startStage2Quiz()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-lg shadow-[0_5px_0_#3730a3] btn-arcade">
+                        ⚔️ ลุยด่านที่ 2: แบบทดสอบท้ายบท (12 คะแนน) ➔
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. STAGE 2: POST-TEST QUIZ (11 QUESTIONS / 12 POINTS) ==================== -->
+        <section id="screen-quiz" class="hidden animate-pop max-w-5xl mx-auto w-full space-y-4">
+            
+            <!-- Scoreboard Header (Solo vs Team Battle) -->
+            <div class="bg-slate-800/95 border border-indigo-500/40 rounded-2xl p-3.5 sm:p-4 shadow-xl">
+                <!-- Solo Quiz HUD -->
+                <div id="quiz-hud-solo" class="hidden flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-lg">🎓</div>
+                        <div>
+                            <div id="quiz-solo-name" class="font-bold text-white text-base">ผู้เข้าสอบ</div>
+                            <div id="quiz-solo-meta" class="text-xs text-indigo-300 font-sarabun">ชั้น ม.3 • เลขที่ -</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div id="quiz-stage1-carry" class="hidden text-center bg-slate-900/80 px-3 py-1.5 rounded-xl border border-emerald-500/30">
+                            <div class="text-[11px] text-emerald-300">ด่าน 1 ทบทวน</div>
+                            <div id="quiz-stage1-val" class="font-bold text-emerald-400 text-sm">0 / 9</div>
+                        </div>
+                        <div class="text-center bg-slate-900 px-4 py-1.5 rounded-xl border border-indigo-500/50">
+                            <div class="text-[11px] text-indigo-300">คะแนนแบบทดสอบ</div>
+                            <div id="quiz-solo-score" class="font-extrabold text-cyan-300 text-xl">0 / 12</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Battle HUD -->
+                <div id="quiz-hud-team" class="hidden grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+                    <div id="team-red-box" class="flex items-center justify-between px-4 py-2 rounded-xl bg-rose-950/80 border-2 border-rose-500">
+                        <div>
+                            <div class="font-extrabold text-rose-200 text-sm sm:text-base">🔴 ทีมแดง (RED)</div>
+                            <div id="team-red-sub" class="text-xs text-rose-300">ตอบถูก 0 ข้อ</div>
+                        </div>
+                        <div id="team-red-pts" class="text-2xl font-extrabold text-white">0</div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="text-[11px] text-slate-400">ทีมที่ต้องตอบข้อนี้</div>
+                        <div id="team-turn-pill" class="inline-block mt-0.5 px-4 py-1 rounded-full font-extrabold text-sm bg-rose-600 text-white">
+                            🔴 ตาของทีมแดง!
+                        </div>
+                    </div>
+
+                    <div id="team-blue-box" class="flex items-center justify-between px-4 py-2 rounded-xl bg-blue-950/60 border-2 border-slate-700 opacity-70">
+                        <div>
+                            <div class="font-extrabold text-blue-200 text-sm sm:text-base">🔵 ทีมน้ำเงิน (BLUE)</div>
+                            <div id="team-blue-sub" class="text-xs text-blue-300">ตอบถูก 0 ข้อ</div>
+                        </div>
+                        <div id="team-blue-pts" class="text-2xl font-extrabold text-white">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Progress & Lifelines Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/85 border border-slate-700 rounded-2xl px-4 py-2.5">
+                <div class="flex items-center gap-2.5">
+                    <span id="quiz-q-badge" class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-bold text-xs sm:text-sm">
+                        ข้อที่ 1 / 11
+                    </span>
+                    <span id="quiz-q-cat" class="text-xs sm:text-sm font-semibold text-slate-300">
+                        หมวดหมู่
+                    </span>
+                    <span id="quiz-boss-tag" class="hidden px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-extrabold text-xs">
+                        👑 ข้อบอส (2 คะแนน)
+                    </span>
+                </div>
+
+                <!-- Lifelines -->
+                <div id="quiz-lifelines-bar" class="flex items-center gap-2">
+                    <button id="btn-ll-5050" onclick="useQuiz5050()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-[0_3px_0_#581c87] btn-arcade">
+                        ✂️ ตัดช้อยส์ 50:50
+                    </button>
+                    <button id="btn-ll-hint" onclick="useQuizHint()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-[0_3px_0_#92400e] btn-arcade">
+                        💡 การ์ดใบ้สูตร
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hint Banner -->
+            <div id="quiz-hint-box" class="hidden animate-pop bg-amber-950/90 border-2 border-amber-400 rounded-2xl p-3.5 flex items-start gap-3">
+                <span class="text-xl">💡</span>
+                <p id="quiz-hint-text" class="text-amber-100 text-sm sm:text-base font-sarabun"></p>
+            </div>
+
+            <!-- Quiz Question Display Card -->
+            <div id="quiz-question-card" class="bg-white text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-4 border-indigo-500/30">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div id="quiz-graph-box" class="hidden w-full md:w-64 flex-shrink-0 flex justify-center bg-slate-50 border-2 border-slate-200 rounded-2xl p-3">
+                    </div>
+                    <div class="flex-1 text-center md:text-left space-y-2">
+                        <h3 id="quiz-question-text" class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
+                            กำลังโหลดโจทย์...
+                        </h3>
+                        <p id="quiz-question-note" class="text-sm text-slate-500 font-sarabun">
+                            เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว (1 คะแนน)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standard 4 Multiple Choice Grid (Q1 - Q10) -->
+            <div id="quiz-mc-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <button id="q-choice-0" onclick="selectQuizAnswer(0)" class="choice-red btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20">
+                    <span class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center font-extrabold flex-shrink-0">1</span>
+                    <span id="q-choice-text-0" class="text-base sm:text-xl font-bold">ตัวเลือก 1</span>
+                </button>
+                <button id="q-choice-1" onclick="selectQuizAnswer(1)" class="choice-blue btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20">
+                    <span class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center font-extrabold flex-shrink-0">2</span>
+                    <span id="q-choice-text-1" class="text-base sm:text-xl font-bold">ตัวเลือก 2</span>
+                </button>
+                <button id="q-choice-2" onclick="selectQuizAnswer(2)" class="choice-yellow btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20">
+                    <span class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center font-extrabold flex-shrink-0">3</span>
+                    <span id="q-choice-text-2" class="text-base sm:text-xl font-bold">ตัวเลือก 3</span>
+                </button>
+                <button id="q-choice-3" onclick="selectQuizAnswer(3)" class="choice-green btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20">
+                    <span class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center font-extrabold flex-shrink-0">4</span>
+                    <span id="q-choice-text-3" class="text-base sm:text-xl font-bold">ตัวเลือก 4</span>
+                </button>
+            </div>
+
+            <!-- Interactive Step-by-Step Fill-in-the-Blank Boss Card (Q11 - 2 Points) -->
+            <div id="quiz-boss-panel" class="hidden bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <div class="font-extrabold text-amber-300 text-base sm:text-lg">
+                        ✍️ เติมตัวเลขลงในช่องว่างทีละบรรทัดให้สมบูรณ์ (ข้อละ 0.5 คะแนน รวม 2 คะแนน)
+                    </div>
+                </div>
+
+                <div class="space-y-3 font-sarabun text-base sm:text-lg text-slate-100">
+                    <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700">
+                        <span class="text-indigo-300 font-bold">กำหนดตัวแปร:</span> ให้ <strong>x</strong> = จำนวนบัตร VIP (ใบ) และ <strong>y</strong> = จำนวนบัตรธรรมดา (ใบ)
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 1</span>
+                        <span>สมการจำนวนบัตรรวม (สมการ ①):</span>
+                        <span class="font-bold text-cyan-300">x + y =</span>
+                        <select id="boss-step-1" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
+                            <option value="">-- เลือกเลข --</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="7000">7000</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 2</span>
+                        <span>สมการจำนวนเงินคือ <strong>200x + 100y = 7,000</strong> (สมการ ②) อยากทำหน้า y ให้เป็น 100y เท่ากัน ต้องนำเลข</span>
+                        <select id="boss-step-2" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
+                            <option value="">-- เลือกตัวคูณ --</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                        </select>
+                        <span>คูณสมการ ① ตลอด (จะได้ 100x + 100y = 5,000)</span>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 3</span>
+                        <span>นำสมการเงินลบสมการใหม่: <strong>(200x − 100x) = 7,000 − 5,000</strong> ➔ 100x = 2,000 ดังนั้นได้ค่า <strong>x (บัตร VIP) =</strong></span>
+                        <select id="boss-step-3" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
+                            <option value="">-- เลือกค่า x --</option>
+                            <option value="10">10 ใบ</option>
+                            <option value="20">20 ใบ</option>
+                            <option value="30">30 ใบ</option>
+                            <option value="40">40 ใบ</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs">ขั้นที่ 4</span>
+                        <span>นำค่า x แทนในสมการ ① (x + y = 50) จะได้จำนวนบัตรธรรมดา <strong>y =</strong></span>
+                        <select id="boss-step-4" class="px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none">
+                            <option value="">-- เลือกค่า y --</option>
+                            <option value="10">10 ใบ</option>
+                            <option value="20">20 ใบ</option>
+                            <option value="30">30 ใบ</option>
+                            <option value="40">40 ใบ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="btn-submit-boss" onclick="submitBossQuestion()" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-lg shadow-[0_5px_0_#92400e] btn-arcade">
+                        ✅ ส่งคำตอบข้อบอส (ตรวจทีละบรรทัด)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Post-Test Line-by-Line Explanation Card -->
+            <div id="quiz-explanation-box" class="hidden animate-pop bg-slate-900 border-2 border-emerald-400 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span id="quiz-res-emoji" class="text-3xl">🎉</span>
+                        <div>
+                            <h4 id="quiz-res-title" class="text-xl font-extrabold text-emerald-400">ถูกต้อง! +1 คะแนน</h4>
+                            <p id="quiz-res-sub" class="text-sm text-slate-300 font-sarabun">คำตอบที่ถูกต้องคือ ...</p>
+                        </div>
+                    </div>
+                    <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-base shadow-[0_4px_0_#065f46] btn-arcade">
+                        ข้อถัดไป ➔
+                    </button>
+                </div>
+
+                <div class="bg-slate-800/90 border border-slate-600 rounded-2xl p-4 space-y-2">
+                    <div class="text-amber-300 font-bold text-sm sm:text-base">📝 เฉลยละเอียดแยกทีละบรรทัด (ที่มาของตัวเลข):</div>
+                    <ul id="quiz-steps-list" class="space-y-2 text-slate-100 font-sarabun text-sm sm:text-base">
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== 4. FINAL REPORT CARD & GOOGLE SHEETS SYNC ==================== -->
+        <section id="screen-summary" class="hidden animate-pop max-w-3xl mx-auto w-full">
+            <div class="bg-slate-800/95 border-2 border-emerald-400 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+                
+                <div class="text-center space-y-2">
+                    <div class="text-5xl">🏆</div>
+                    <h2 id="sum-title" class="text-2xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-emerald-300 to-cyan-300">
+                        บัตรรายงานผลการเรียนรู้
+                    </h2>
+                    <p id="sum-subtitle" class="text-slate-300 text-sm sm:text-base font-sarabun">
+                        บันทึกผลการทำกิจกรรมเรียบร้อยแล้ว
+                    </p>
+                </div>
+
+                <!-- Google Sheets Sync Status Alert -->
+                <div id="sheets-sync-banner" class="hidden rounded-2xl p-4 border-2 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span id="sync-icon" class="text-2xl">⏳</span>
+                        <div>
+                            <div id="sync-status-title" class="font-bold text-sm sm:text-base">กำลังส่งคะแนนเข้า Google Sheets...</div>
+                            <div id="sync-status-desc" class="text-xs font-sarabun opacity-90">กรุณารอสักครู่</div>
+                        </div>
+                    </div>
+                    <button id="btn-retry-sync" onclick="retrySheetsSync()" class="hidden px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">
+                        ส่งอีกครั้ง
+                    </button>
+                </div>
+
+                <!-- Solo Student Report Card -->
+                <div id="sum-solo-card" class="hidden bg-slate-900 border border-indigo-500/40 rounded-2xl p-5 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-slate-700 pb-4 font-sarabun">
+                        <div>
+                            <span class="text-xs text-slate-400 block">ชื่อ - นามสกุล (ชื่อเล่น)</span>
+                            <span id="rep-fullname" class="text-base sm:text-lg font-bold text-white">-</span>
+                        </div>
+                        <div class="sm:text-right">
+                            <span class="text-xs text-slate-400 block">ชั้นเรียน / เลขที่</span>
+                            <span id="rep-class-no" class="text-base sm:text-lg font-bold text-cyan-300">-</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                            <div class="text-xs text-slate-400">ด่าน 1 ทบทวน</div>
+                            <div id="rep-wu-score" class="text-xl sm:text-2xl font-extrabold text-emerald-400 mt-1">-</div>
+                        </div>
+                        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                            <div class="text-xs text-slate-400">ด่าน 2 แบบทดสอบ</div>
+                            <div id="rep-quiz-score" class="text-xl sm:text-2xl font-extrabold text-cyan-400 mt-1">-</div>
+                        </div>
+                        <div class="bg-indigo-950/80 p-3 rounded-xl border border-indigo-500">
+                            <div class="text-xs text-indigo-200">คะแนนรวมสุทธิ</div>
+                            <div id="rep-total-score" class="text-xl sm:text-2xl font-extrabold text-amber-300 mt-1">-</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/90 rounded-xl p-3.5 text-center border border-amber-500/30">
+                        <span class="text-xs text-slate-400 block">ระดับผลการประเมิน</span>
+                        <span id="rep-grade-label" class="text-lg sm:text-xl font-extrabold text-amber-300">ยอดเยี่ยม!</span>
+                    </div>
+                </div>
+
+                <!-- Team Battle Summary Card -->
+                <div id="sum-team-card" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-rose-950/80 border-2 border-rose-500 rounded-2xl p-5 text-center">
+                        <div class="text-sm font-bold text-rose-300">🔴 ทีมแดง (RED TEAM)</div>
+                        <div id="rep-team-red" class="text-4xl font-extrabold text-white my-1">0</div>
+                        <div class="text-xs text-rose-200">คะแนนสะสม</div>
+                    </div>
+                    <div class="bg-blue-950/80 border-2 border-blue-500 rounded-2xl p-5 text-center">
+                        <div class="text-sm font-bold text-blue-300">🔵 ทีมน้ำเงิน (BLUE TEAM)</div>
+                        <div id="rep-team-blue" class="text-4xl font-extrabold text-white my-1">0</div>
+                        <div class="text-xs text-blue-200">คะแนนสะสม</div>
+                    </div>
+                </div>
+
+                <!-- Bottom Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <button onclick="openCheatSheet()" class="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base shadow-[0_4px_0_#3730a3] btn-arcade">
+                        📖 ดูเฉลยละเอียดทุกข้อ
+                    </button>
+                    <button onclick="goHome()" class="px-6 py-3.5 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-base btn-arcade">
+                        🏠 กลับหน้าหลัก
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 5. TEACHER CHEAT SHEET SCREEN ==================== -->
+        <section id="screen-cheatsheet" class="hidden animate-pop max-w-5xl mx-auto w-full space-y-5">
+            <div class="bg-slate-800/95 border-2 border-indigo-500/40 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-indigo-300">
+                            📖 คู่มือเฉลยสำหรับครู (Teacher Cheat Sheet)
+                        </h2>
+                        <p class="text-sm text-slate-300 font-sarabun mt-1">
+                            รวมเฉลยละเอียดทีละบรรทัดทั้ง <strong>ด่านที่ 1 มินิเกมทบทวนพื้นฐาน (9 ข้อ)</strong> และ <strong>ด่านที่ 2 แบบทดสอบท้ายบท (11 ข้อ)</strong>
+                        </p>
+                    </div>
+                    <button onclick="goHome()" class="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm btn-arcade">
+                        ← กลับหน้าหลัก
+                    </button>
+                </div>
+
+                <!-- Tabs for Warm-Up vs Post-Test -->
+                <div class="flex gap-2">
+                    <button id="tab-cs-quiz" onclick="renderCheatSheet('quiz')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm">
+                        ด่าน 2: แบบทดสอบท้ายบท (11 ข้อ)
+                    </button>
+                    <button id="tab-cs-warmup" onclick="renderCheatSheet('warmup')" class="px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-bold text-sm">
+                        ด่าน 1: มินิเกมทบทวน (9 ข้อ)
+                    </button>
+                </div>
+
+                <div id="cheatsheet-content" class="space-y-4">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== 6. GOOGLE SHEETS INTEGRATION MODAL ==================== -->
+    <div id="modal-sheets" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border-2 border-emerald-500 rounded-3xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl animate-pop space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">📊</span>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-emerald-400">
+                        ตั้งค่าฐานข้อมูล Google Sheets (สำหรับครู)
+                    </h3>
+                </div>
+                <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+
+            <!-- Web App URL Input Section -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                <label class="block text-sm font-bold text-white">
+                    1. วางลิงก์ Google Apps Script Web App URL ที่นี่:
+                </label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input id="input-webapp-url" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-600 text-emerald-300 text-sm focus:border-emerald-400 focus:outline-none font-sarabun">
+                    <button onclick="saveWebAppUrl()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm btn-arcade">
+                        💾 บันทึกลิงก์
+                    </button>
+                    <button onclick="testSheetsConnection()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm btn-arcade">
+                        🧪 ทดสอบส่งข้อมูล
+                    </button>
+                </div>
+                <p id="webapp-url-status" class="text-xs text-slate-400 font-sarabun">
+                    สถานะปัจจุบัน: ยังไม่ได้เชื่อมต่อ (ระบบจะบันทึกคะแนนสำรองไว้ในเครื่องอัตโนมัติ)
+                </p>
+            </div>
+
+            <!-- 4-Step Setup Guide & Copy Code.gs -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-sm font-bold text-indigo-300">
+                        2. วิธีติดตั้ง Google Sheets 4 ขั้นตอน (ทำครั้งเดียวใช้ได้ทั้งเทอม)
+                    </span>
+                    <button onclick="copyAppsScriptCode()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow btn-arcade">
+                        📋 คัดลอกโค้ด Apps Script (Code.gs)
+                    </button>
+                </div>
+
+                <ol class="list-decimal list-inside text-xs sm:text-sm text-slate-300 font-sarabun space-y-1.5 pl-1">
+                    <li>สร้างไฟล์ Google Sheets ใหม่ ตั้งชื่อว่า <strong class="text-white">ฐานข้อมูลเก็บคะแนนเกม_ระบบสมการเชิงเส้นสองตัวแปร_ม3</strong></li>
+                    <li>ไปที่เมนูด้านบนเลือก <strong class="text-amber-300">ส่วนขยาย (Extensions) &gt; Apps Script</strong></li>
+                    <li>ลบโค้ดเดิมทั้งหมด แล้วกดปุ่ม <strong class="text-indigo-300">"คัดลอกโค้ด Apps Script (Code.gs)"</strong> ด้านบนมาวางแทนที่ จากนั้นกดบันทึก (💾)</li>
+                    <li>กดปุ่ม <strong class="text-emerald-300">ทำให้ใช้งานได้ (Deploy) &gt; การทำให้ใช้งานได้รายการใหม่ (New deployment)</strong> เลือกประเภทเป็น <strong>เว็บแอป (Web app)</strong> ตั้งค่าผู้มีสิทธิ์เข้าถึงเป็น <strong>ทุกคน (Everyone)</strong> กด Deploy แล้วนำ URL มาวางในช่องด้านบนครับ</li>
+                </ol>
+
+                <!-- Code Preview Box -->
+                <pre id="apps-script-code" class="bg-slate-950 text-emerald-300 p-3 rounded-xl text-xs overflow-x-auto border border-slate-700 font-mono leading-relaxed">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["วัน-เวลาที่ส่ง", "ชื่อ-นามสกุล", "ชื่อเล่น", "ชั้นเรียน", "เลขที่", "เส้นทางที่เลือก", "คะแนนด่าน1_ทบทวน", "คะแนนด่าน2_แบบทดสอบ", "คะแนนรวม", "ระดับผลการเรียน"]);
+  }
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    new Date().toLocaleString("th-TH"),
+    data.fullName,
+    data.nickName,
+    data.classroom,
+    data.studentNo,
+    data.pathLabel,
+    data.warmupScore,
+    data.quizScore,
+    data.totalScore,
+    data.gradeLabel
+  ]);
+  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+            </div>
+
+            <!-- Local Backup Score Log & CSV Download -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <span class="text-sm font-bold text-amber-300">3. ประวัติคะแนนสำรองในเครื่องนี้ (Local Log)</span>
+                        <span id="local-log-count" class="text-xs text-slate-400 ml-2">(0 รายการ)</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportLocalScoresCSV()" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs btn-arcade">
+                            📥 ดาวน์โหลดไฟล์ CSV
+                        </button>
+                        <button onclick="clearLocalLogs()" class="px-3 py-1.5 rounded-xl bg-rose-900/70 hover:bg-rose-800 text-rose-200 font-bold text-xs">
+                            ล้างประวัติ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-48 border border-slate-700 rounded-xl">
+                    <table class="w-full text-left text-xs font-sarabun">
+                        <thead class="bg-slate-950 text-slate-300 sticky top-0">
+                            <tr>
+                                <th class="p-2">เวลา</th>
+                                <th class="p-2">ชื่อ-นามสกุล</th>
+                                <th class="p-2">ชั้น/เลขที่</th>
+                                <th class="p-2">ด่าน 1</th>
+                                <th class="p-2">ด่าน 2</th>
+                                <th class="p-2">รวม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="local-log-tbody" class="divide-y divide-slate-700/70 text-slate-200">
+                            <tr><td colspan="6" class="p-3 text-center text-slate-400">ยังไม่มีประวัติการบันทึกคะแนนในเครื่องนี้</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-3 text-xs text-slate-500 border-t border-slate-800/80">
+        สื่อการเรียนรู้คณิตศาสตร์พื้นฐาน ม.3 • ระบบสมการเชิงเส้นสองตัวแปร (ฉบับปรับให้ง่าย + Google Sheets Sync)
+    </footer>
+
+    <script>
+        /* ============================================================================
+           1. INLINE SVG GRAPHS (ZERO EXTERNAL IMAGES)
+           ============================================================================ */
+        // Intersecting at 1 point (2, 1)
+        const SVG_GRAPH_INTERSECT = `
+        <svg viewBox="0 0 240 240" class="w-full max-w-[210px] h-auto" xmlns="http://www.w3.org/2000/svg">
+            <rect width="240" height="240" rx="12" fill="#ffffff"/>
+            <g stroke="#e2e8f0" stroke-width="1">
+                <line x1="20" y1="40" x2="220" y2="40"/><line x1="20" y1="80" x2="220" y2="80"/>
+                <line x1="20" y1="120" x2="220" y2="120"/><line x1="20" y1="160" x2="220" y2="160"/>
+                <line x1="20" y1="200" x2="220" y2="200"/>
+                <line x1="40" y1="20" x2="40" y2="220"/><line x1="80" y1="20" x2="80" y2="220"/>
+                <line x1="120" y1="20" x2="120" y2="220"/><line x1="160" y1="20" x2="160" y2="220"/>
+                <line x1="200" y1="20" x2="200" y2="220"/>
+            </g>
+            <line x1="15" y1="120" x2="225" y2="120" stroke="#1e293b" stroke-width="2"/>
+            <line x1="120" y1="225" x2="120" y2="15" stroke="#1e293b" stroke-width="2"/>
+            <text x="226" y="124" font-size="11" font-weight="bold" fill="#0f172a">X</text>
+            <text x="116" y="12" font-size="11" font-weight="bold" fill="#0f172a">Y</text>
+            <text x="157" y="133" font-size="10" font-weight="bold" fill="#dc2626">2</text>
+            <text x="108" y="104" font-size="10" font-weight="bold" fill="#dc2626">1</text>
+            <!-- Line 1 & Line 2 crossing at (160, 100) -> (2, 1) -->
+            <line x1="50" y1="210" x2="210" y2="50" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+            <line x1="70" y1="30" x2="220" y2="150" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="160" cy="100" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+        </svg>`;
+
+        // Parallel lines (0 solutions)
+        const SVG_GRAPH_PARALLEL = `
+        <svg viewBox="0 0 240 240" class="w-full max-w-[210px] h-auto" xmlns="http://www.w3.org/2000/svg">
+            <rect width="240" height="240" rx="12" fill="#ffffff"/>
+            <g stroke="#e2e8f0" stroke-width="1">
+                <line x1="20" y1="40" x2="220" y2="40"/><line x1="20" y1="80" x2="220" y2="80"/>
+                <line x1="20" y1="120" x2="220" y2="120"/><line x1="20" y1="160" x2="220" y2="160"/>
+                <line x1="20" y1="200" x2="220" y2="200"/>
+                <line x1="40" y1="20" x2="40" y2="220"/><line x1="80" y1="20" x2="80" y2="220"/>
+                <line x1="120" y1="20" x2="120" y2="220"/><line x1="160" y1="20" x2="160" y2="220"/>
+                <line x1="200" y1="20" x2="200" y2="220"/>
+            </g>
+            <line x1="15" y1="120" x2="225" y2="120" stroke="#1e293b" stroke-width="2"/>
+            <line x1="120" y1="225" x2="120" y2="15" stroke="#1e293b" stroke-width="2"/>
+            <text x="226" y="124" font-size="11" font-weight="bold" fill="#0f172a">X</text>
+            <text x="116" y="12" font-size="11" font-weight="bold" fill="#0f172a">Y</text>
+            <!-- Two parallel lines -->
+            <line x1="30" y1="180" x2="180" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="60" y1="210" x2="210" y2="60" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+        </svg>`;
+
+        // Coincident / Overlapping lines (Infinitely many solutions)
+        const SVG_GRAPH_OVERLAP = `
+        <svg viewBox="0 0 240 240" class="w-full max-w-[210px] h-auto" xmlns="http://www.w3.org/2000/svg">
+            <rect width="240" height="240" rx="12" fill="#ffffff"/>
+            <g stroke="#e2e8f0" stroke-width="1">
+                <line x1="20" y1="40" x2="220" y2="40"/><line x1="20" y1="80" x2="220" y2="80"/>
+                <line x1="20" y1="120" x2="220" y2="120"/><line x1="20" y1="160" x2="220" y2="160"/>
+                <line x1="20" y1="200" x2="220" y2="200"/>
+                <line x1="40" y1="20" x2="40" y2="220"/><line x1="80" y1="20" x2="80" y2="220"/>
+                <line x1="120" y1="20" x2="120" y2="220"/><line x1="160" y1="20" x2="160" y2="220"/>
+                <line x1="200" y1="20" x2="200" y2="220"/>
+            </g>
+            <line x1="15" y1="120" x2="225" y2="120" stroke="#1e293b" stroke-width="2"/>
+            <line x1="120" y1="225" x2="120" y2="15" stroke="#1e293b" stroke-width="2"/>
+            <text x="226" y="124" font-size="11" font-weight="bold" fill="#0f172a">X</text>
+            <text x="116" y="12" font-size="11" font-weight="bold" fill="#0f172a">Y</text>
+            <!-- Overlapping lines: thick amber underneath, dashed blue on top -->
+            <line x1="40" y1="200" x2="200" y2="40" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+            <line x1="40" y1="200" x2="200" y2="40" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="8,6" stroke-linecap="round"/>
+        </svg>`;
+
+        /* ============================================================================
+           2. STAGE 1 DATA: WARM-UP MINI-GAME (3 BASES x 3 QUESTIONS = 9 QUESTIONS)
+           ============================================================================ */
+        const WARMUP_QUESTIONS = [
+            // Base 1: Graph Detective
+            {
+                base: 1,
+                baseName: "ฐานที่ 1: นักสืบกราฟ (ข้อ 1/3)",
+                svg: SVG_GRAPH_INTERSECT,
+                question: "เส้นตรงสองเส้นตัดกัน 1 จุดดังรูป ระบบสมการนี้มีกี่คำตอบ?",
+                choices: ["มี 1 คำตอบ (จุดตัด)", "ไม่มีคำตอบ", "มีคำตอบมากมายไม่จำกัด"],
+                correctIndex: 0,
+                steps: [
+                    "สังเกตจุดสีแดงตรงกลาง จะเห็นว่าเส้นสีน้ำเงินและเส้นสีเขียวตัดกันเพียง 1 จุดเท่านั้น",
+                    "ในเรื่องระบบสมการ จุดที่เส้นกราฟตัดกันคือ 'คำตอบของระบบสมการ'",
+                    "เมื่อตัดกันแค่ 1 จุด จึงสรุปได้ว่ามี '1 คำตอบ' ครับ"
+                ]
+            },
+            {
+                base: 1,
+                baseName: "ฐานที่ 1: นักสืบกราฟ (ข้อ 2/3)",
+                svg: SVG_GRAPH_PARALLEL,
+                question: "เส้นตรงสีแดงและสีน้ำเงินขนานกันดังรูป ระบบสมการนี้มีกี่คำตอบ?",
+                choices: ["มี 1 คำตอบ", "ไม่มีคำตอบเลย (0 คำตอบ)", "มีคำตอบมากมายไม่จำกัด"],
+                correctIndex: 1,
+                steps: [
+                    "สังเกตระยะห่างระหว่างเส้นสีแดงกับเส้นสีน้ำเงิน ทั้งสองเส้นเอียงเท่ากันเป๊ะและขนานกัน",
+                    "เส้นขนานต่อให้ลากยาวออกไปไกลแค่ไหน ก็จะไม่มีวันชนหรือตัดกันเลย",
+                    "เมื่อไม่มีจุดตัด จึงสรุปได้ว่า 'ไม่มีคำตอบเลย' ครับ"
+                ]
+            },
+            {
+                base: 1,
+                baseName: "ฐานที่ 1: นักสืบกราฟ (ข้อ 3/3)",
+                svg: SVG_GRAPH_OVERLAP,
+                question: "เส้นตรงสองเส้นทับซ้อนกันสนิทเป็นเส้นเดียวกันดังรูป มีกี่คำตอบ?",
+                choices: ["มี 1 คำตอบ", "ไม่มีคำตอบ", "มีคำตอบมากมายไม่จำกัด"],
+                correctIndex: 2,
+                steps: [
+                    "เส้นสีส้มและเส้นประสีน้ำเงินวางทับซ้อนกันสนิทตลอดทั้งเส้น",
+                    "แปลว่าทุกๆ จุดบนเส้นตรงนี้คือจุดตัดร่วมกันทั้งหมด นับไม่ถ้วน",
+                    "ดังนั้นระบบสมการที่มีกราฟทับกันจึง 'มีคำตอบมากมายไม่จำกัด' ครับ"
+                ]
+            },
+
+            // Base 2: River Crossing (Transposition)
+            {
+                base: 2,
+                baseName: "ฐานที่ 2: สะพานข้ามแม่น้ำ (ข้อ 1/3)",
+                svg: null,
+                question: "จากสมการ x + y = 10 ถ้าย้าย x ข้ามสะพานไปฝั่งขวา y จะเท่ากับเท่าใด?",
+                choices: ["y = 10 - x", "y = 10 + x", "y = -10 - x"],
+                correctIndex: 0,
+                steps: [
+                    "กฎการข้ามสะพานเครื่องหมายเท่ากับ (=) คือ 'ย้ายข้างต้องเปลี่ยนเครื่องหมายเป็นตรงข้าม'",
+                    "เดิม x อยู่ฝั่งซ้ายเป็นค่าบวก (+x) เมื่อย้ายข้ามไปฝั่งขวาจะเปลี่ยนเป็นลบ (-x)",
+                    "ส่วนเลข 10 อยู่ฝั่งขวาเหมือนเดิมไม่ย้ายไปไหน จึงเขียนได้เป็น y = 10 - x ครับ"
+                ]
+            },
+            {
+                base: 2,
+                baseName: "ฐานที่ 2: สะพานข้ามแม่น้ำ (ข้อ 2/3)",
+                svg: null,
+                question: "จากสมการ y - 2x = 5 ถ้าย้าย -2x ข้ามสะพานไปฝั่งขวา y จะเท่ากับเท่าใด?",
+                choices: ["y = 5 - 2x", "y = 5 + 2x", "y = 2x - 5"],
+                correctIndex: 1,
+                steps: [
+                    "มองก้อนที่ต้องการย้าย: ฝั่งซ้ายมี '-2x' ซึ่งเป็นเครื่องหมายลบ (-)",
+                    "เมื่อย้าย -2x ข้ามเครื่องหมายเท่ากับไปฝั่งขวา จะเปลี่ยนเป็นบวก (+2x)",
+                    "ดังนั้นฝั่งขวาจึงกลายเป็น 5 + 2x ครับ"
+                ]
+            },
+            {
+                base: 2,
+                baseName: "ฐานที่ 2: สะพานข้ามแม่น้ำ (ข้อ 3/3)",
+                svg: null,
+                question: "จากสมการ 3x = 15 ถ้าย้ายเลข 3 ที่คูณอยู่ข้ามไปฝั่งขวา x จะเท่ากับเท่าใด?",
+                choices: ["x = 15 - 3 = 12", "x = 15 × 3 = 45", "x = 15 ÷ 3 = 5"],
+                correctIndex: 2,
+                steps: [
+                    "3x หมายถึง 3 คูณกับ x อยู่",
+                    "เมื่อย้ายตัวเลขที่ 'คูณ' ข้ามสะพานไปฝั่งขวา จะเปลี่ยนเป็น 'หาร'",
+                    "จะได้ x = 15 ÷ 3 ซึ่งคำนวณออกมาได้ x = 5 ครับ"
+                ]
+            },
+
+            // Base 3: Creating Twins (Elimination Multiplier)
+            {
+                base: 3,
+                baseName: "ฐานที่ 3: สร้างฝาแฝดกำจัดตัวแปร (ข้อ 1/3)",
+                svg: null,
+                question: "มีสมการ ① 2x + y = 7 และสมการ ② x - 3y = 5 อยากกำจัดตัวแปร y ต้องเอาเลขอะไรคูณสมการ ①?",
+                choices: ["คูณด้วย 3", "คูณด้วย -3", "คูณด้วย 2"],
+                correctIndex: 0,
+                steps: [
+                    "ดูตัวเลขหน้า y ของทั้งสองสมการ: สมการ ① มี +1y ส่วนสมการ ② มี -3y",
+                    "เราอยากปั้น +1y ในสมการ ① ให้กลายเป็น +3y เพื่อจะได้เอาไปบวกกับ -3y แล้วหมดไป",
+                    "จึงต้องนำเลข 3 คูณตลอดทั้งสมการ ① (จะได้ 6x + 3y = 21) ครับ"
+                ]
+            },
+            {
+                base: 3,
+                baseName: "ฐานที่ 3: สร้างฝาแฝดกำจัดตัวแปร (ข้อ 2/3)",
+                svg: null,
+                question: "มีสมการ ① x + y = 20 และสมการ ② 50x + 20y = 700 อยากกำจัดตัวแปร y ต้องเอาเลขอะไรคูณสมการ ①?",
+                choices: ["คูณด้วย 50", "คูณด้วย 20", "คูณด้วย 10"],
+                correctIndex: 1,
+                steps: [
+                    "เป้าหมายคือต้องการกำจัดตัวแปร y ออกไปก่อน",
+                    "ในสมการ ② หน้า y คือเลข 20 (20y) แต่สมการ ① มีแค่ 1y",
+                    "จึงนำเลข 20 คูณตลอดทั้งสมการ ① เพื่อให้กลายเป็น 20x + 20y = 400 แล้วจับลบกันได้ทันทีครับ"
+                ]
+            },
+            {
+                base: 3,
+                baseName: "ฐานที่ 3: สร้างฝาแฝดกำจัดตัวแปร (ข้อ 3/3)",
+                svg: null,
+                question: "ถ้ามีสมการ ① 4x + 5y = 18 และสมการ ② 4x + 2y = 12 (หน้า x เป็น 4x เท่ากันแล้ว) ต้องทำอย่างไรให้ x หายไป?",
+                choices: ["นำสมการ ① บวก สมการ ②", "นำสมการ ① ลบ สมการ ②", "นำ 4 คูณทั้งสองสมการ"],
+                correctIndex: 1,
+                steps: [
+                    "สังเกตเครื่องหมายหน้า 4x ของทั้งสองสมการ: เป็นบวก (+4x) เหมือนกันทั้งคู่",
+                    "ถ้าจับมาบวกกันจะได้ 8x (ไม่หายไป!) แต่ถ้าจับมา 'ลบกัน' จะได้ 4x - 4x = 0",
+                    "จำง่ายๆ: 'เครื่องหมายเหมือนกันจับลบกัน เครื่องหมายต่างกันจับบวกกัน' ครับ"
+                ]
+            }
+        ];
+
+        /* ============================================================================
+           3. STAGE 2 DATA: POST-TEST QUIZ (10 MC + 1 INTERACTIVE BOSS = 12 POINTS)
+           ============================================================================ */
+        const QUIZ_QUESTIONS = [
+            {
+                id: 1,
+                category: "หมวด: อ่านกราฟระบบสมการ",
+                svg: SVG_GRAPH_PARALLEL,
+                question: "จากกราฟที่กำหนด ระบบสมการนี้มีลักษณะคำตอบตรงกับข้อใด?",
+                choices: [
+                    "ไม่มีคำตอบ (เส้นตรงขนานกัน)",
+                    "มีคำตอบเดียว",
+                    "มีคำตอบมากมายไม่จำกัด",
+                    "มี 2 คำตอบ"
+                ],
+                correctIndex: 0,
+                hint: "ดูเส้นสีแดงกับเส้นสีน้ำเงินครับ มันขนานกันโดยไม่มีจุดตัดเลย แปลว่ามีคำตอบไหม?",
+                steps: [
+                    "เส้นตรงสีแดงและสีน้ำเงินขนานกันและมีระยะห่างเท่ากันตลอด",
+                    "กราฟทั้งสองเส้นไม่มีจุดตัดร่วมกันเลย จึงสรุปได้ว่า 'ไม่มีคำตอบ' ครับ"
+                ]
+            },
+            {
+                id: 2,
+                category: "หมวด: อ่านพิกัดจุดตัดบนกราฟ",
+                svg: SVG_GRAPH_INTERSECT,
+                question: "เส้นตรงสองเส้นตัดกันดังรูป คำตอบของระบบสมการนี้คือคู่อันดับใด?",
+                choices: [
+                    "(1, 2)",
+                    "(2, 1)",
+                    "(0, 2)",
+                    "(2, 0)"
+                ],
+                correctIndex: 1,
+                hint: "คู่อันดับ (x, y) ให้อ่านตัวเลขบนแกน X (แนวนอน) ก่อน แล้วค่อยอ่านแกน Y (แนวตั้ง) ครับ",
+                steps: [
+                    "ดูจุดสีแดงที่เส้นกราฟตัดกัน แล้วมองลงมาที่แกน X (แนวนอน) จะตรงกับเลข 2",
+                    "มองไปทางซ้ายที่แกน Y (แนวตั้ง) จะตรงกับเลข 1",
+                    "เขียนเป็นคู่อันดับ (x, y) ได้เป็น (2, 1) ครับ"
+                ]
+            },
+            {
+                id: 3,
+                category: "หมวด: ตรวจสอบคำตอบของระบบสมการ",
+                svg: null,
+                question: "คู่อันดับ (4, 1) เป็นคำตอบของระบบสมการในข้อใด?",
+                choices: [
+                    "x + y = 5 และ x - y = 3",
+                    "x + y = 6 และ x - y = 2",
+                    "2x + y = 8 และ x + y = 5",
+                    "x - y = 5 และ x + y = 3"
+                ],
+                correctIndex: 0,
+                hint: "แทนค่า x = 4 และ y = 1 ลงในสมการทั้งสองของแต่ละตัวเลือก ดูว่าข้อไหนเป็นจริงทั้งคู่",
+                steps: [
+                    "คู่อันดับ (4, 1) หมายถึง x = 4 และ y = 1",
+                    "ตรวจตัวเลือก 1 สมการแรก: x + y = 4 + 1 = 5 (จริง!)",
+                    "ตรวจตัวเลือก 1 สมการที่สอง: x - y = 4 - 1 = 3 (จริงทั้งสองสมการ จึงตอบข้อ 1 ครับ)"
+                ]
+            },
+            {
+                id: 4,
+                category: "หมวด: รูปแบบคำตอบพิเศษ",
+                svg: null,
+                question: "ระบบสมการในข้อใด 'มีคำตอบมากมายไม่จำกัด' (กราฟทับกันสนิท)?",
+                choices: [
+                    "x + y = 5 และ x - y = 5",
+                    "2x + 4y = 6 และ x + 2y = 3",
+                    "x + 2y = 4 และ x + 2y = 9",
+                    "3x + y = 7 และ 6x + 2y = 10"
+                ],
+                correctIndex: 1,
+                hint: "สมการที่มีคำตอบมากมายคือสมการเดียวกันที่เอาตัวเลขคูณตลอดทั้งสมการครับ",
+                steps: [
+                    "ดูตัวเลือกที่ 2 สมการหลังคือ x + 2y = 3",
+                    "ลองนำเลข 2 คูณตลอดทั้งสมการ: 2(x) + 2(2y) = 2(3) จะได้ 2x + 4y = 6",
+                    "หน้าตาเหมือนสมการแรกทุกตัวอักษร แปลว่าเป็นเส้นเดียวกัน จึงมีคำตอบมากมายครับ"
+                ]
+            },
+            {
+                id: 5,
+                category: "หมวด: รูปแบบคำตอบพิเศษ",
+                svg: null,
+                question: "ระบบสมการในข้อใด 'ไม่มีคำตอบ' (กราฟขนานกัน)?",
+                choices: [
+                    "x + y = 4 และ 2x + 2y = 8",
+                    "x - y = 2 และ x + y = 6",
+                    "x + 3y = 5 และ 2x + 6y = 7",
+                    "2x - y = 3 และ 4x - 2y = 6"
+                ],
+                correctIndex: 2,
+                hint: "สมการที่ไม่มีคำตอบ ฝั่งซ้าย (ตัวแปร x, y) จะเป็นสัดส่วนเท่ากัน แต่ตัวเลขฝั่งขวาไม่เท่ากันครับ",
+                steps: [
+                    "พิจารณาตัวเลือกที่ 3: นำ 2 คูณสมการแรก (x + 3y = 5) จะได้ 2x + 6y = 10",
+                    "แต่สมการที่สองบอกว่า 2x + 6y = 7 (ฝั่งซ้ายเหมือนกันเป๊ะ แต่ฝั่งขวา 10 ≠ 7)",
+                    "เกิดข้อขัดแย้งกัน เส้นกราฟจึงขนานกันและ 'ไม่มีคำตอบ' ครับ"
+                ]
+            },
+            {
+                id: 6,
+                category: "หมวด: แก้ระบบสมการ (กำจัดตัวแปร)",
+                svg: null,
+                question: "คำตอบของระบบสมการ x + y = 9 และ x - y = 3 ตรงกับข้อใด?",
+                choices: [
+                    "(5, 4)",
+                    "(7, 2)",
+                    "(6, 3)",
+                    "(8, 1)"
+                ],
+                correctIndex: 2,
+                hint: "จับสมการแรกบวกสมการที่สอง (+y กับ -y จะตัดกันหมดไปทันที)",
+                steps: [
+                    "นำสมการ (1) + สมการ (2): (x + x) + (y - y) = 9 + 3 จะได้ 2x = 12",
+                    "ย้าย 2 ไปหาร 12: x = 12 ÷ 2 = 6",
+                    "แทน x = 6 ในสมการแรก: 6 + y = 9 ➔ y = 9 - 6 = 3 ดังนั้นตอบ (6, 3) ครับ"
+                ]
+            },
+            {
+                id: 7,
+                category: "หมวด: แก้ระบบสมการ (กำจัดตัวแปร)",
+                svg: null,
+                question: "คำตอบของระบบสมการ 2x + y = 7 และ x - y = 2 ตรงกับข้อใด?",
+                choices: [
+                    "(3, 1)",
+                    "(2, 3)",
+                    "(4, -1)",
+                    "(1, 5)"
+                ],
+                correctIndex: 0,
+                hint: "สมการแรกมี +y และสมการที่สองมี -y นำสองสมการมาบวกกันได้เลยครับ",
+                steps: [
+                    "นำสมการ (1) + สมการ (2): (2x + x) + (y - y) = 7 + 2 จะได้ 3x = 9",
+                    "ย้าย 3 ไปหาร 9: x = 9 ÷ 3 = 3",
+                    "แทน x = 3 ในสมการที่สอง: 3 - y = 2 ➔ y = 1 ดังนั้นตอบ (3, 1) ครับ"
+                ]
+            },
+            {
+                id: 8,
+                category: "หมวด: แก้ระบบสมการ (วิธีแทนค่า)",
+                svg: null,
+                question: "คำตอบของระบบสมการ 3(x + 1) = 12 และ x + y = 8 ตรงกับข้อใด?",
+                choices: [
+                    "(4, 4)",
+                    "(3, 5)",
+                    "(2, 6)",
+                    "(5, 3)"
+                ],
+                correctIndex: 1,
+                hint: "แก้สมการแรก 3(x + 1) = 12 เพื่อหาค่า x ก่อน โดยย้าย 3 ไปหาร 12 ครับ",
+                steps: [
+                    "จากสมการแรก 3(x + 1) = 12 ย้าย 3 ไปหาร 12: x + 1 = 12 ÷ 3 = 4",
+                    "ย้าย +1 ไปลบ: x = 4 - 1 = 3",
+                    "นำ x = 3 แทนในสมการที่สอง (x + y = 8): 3 + y = 8 ➔ y = 5 ตอบ (3, 5) ครับ"
+                ]
+            },
+            {
+                id: 9,
+                category: "หมวด: แก้ระบบสมการและหาผลต่าง",
+                svg: null,
+                question: "ถ้ากราฟของ 2x + y = 10 และ x + y = 6 ตัดกันที่จุด (x, y) แล้วค่าของ x - y เท่ากับเท่าใด?",
+                choices: [
+                    "1",
+                    "2",
+                    "4",
+                    "6"
+                ],
+                correctIndex: 1,
+                hint: "หาค่า x และ y ออกมาก่อน แล้วอย่าลืมเอา x ลบ y ตามที่โจทย์ถามนะครับ!",
+                steps: [
+                    "นำสมการ (1) ลบ สมการ (2): (2x - x) + (y - y) = 10 - 6 จะได้ x = 4",
+                    "แทน x = 4 ในสมการที่สอง: 4 + y = 6 ➔ y = 2",
+                    "โจทย์ถามค่าของ x - y: นำ 4 - 2 = 2 ครับ"
+                ]
+            },
+            {
+                id: 10,
+                category: "หมวด: โจทย์ปัญหาซื้อขนม",
+                svg: null,
+                question: "แม่ค้าขายขนมปังและคุกกี้รวมกัน 10 กล่อง ขนมปังราคากล่องละ 20 บาท คุกกี้ราคากล่องละ 30 บาท ได้เงินรวม 240 บาท แม่ค้าขายขนมปังได้กี่กล่อง?",
+                choices: [
+                    "4 กล่อง",
+                    "5 กล่อง",
+                    "6 กล่อง",
+                    "7 กล่อง"
+                ],
+                correctIndex: 2,
+                hint: "ตั้ง 2 สมการ: สมการแรก x + y = 10 สมการที่สอง 20x + 30y = 240 ครับ",
+                steps: [
+                    "ให้ x = ขนมปัง (กล่อง) และ y = คุกกี้ (กล่อง) จะได้ (1) x + y = 10 และ (2) 20x + 30y = 240",
+                    "นำ 30 คูณสมการ (1) เพื่อกำจัด y: 30x + 30y = 300 --- สมการ (3)",
+                    "นำสมการ (3) ลบ (2): (30x - 20x) = 300 - 240 ➔ 10x = 60 ➔ x = 6 กล่องครับ"
+                ]
+            },
+            {
+                id: 11,
+                category: "👑 ข้อบอส: แสดงวิธีทำแบบเติมตัวเลขทีละขั้น",
+                isBoss: true,
+                svg: null,
+                question: "โรงภาพยนตร์ขายบัตร VIP ใบละ 200 บาท และบัตรธรรมดาใบละ 100 บาท ขายได้ทั้งหมด 50 ใบ เป็นเงิน 7,000 บาท จงเติมตัวเลขในแต่ละขั้นตอนให้สมบูรณ์",
+                steps: [
+                    "ขั้นที่ 1 สมการจำนวนบัตรรวม: x + y = 50 (เพราะขายบัตรสองแบบรวมกันได้ 50 ใบ)",
+                    "ขั้นที่ 2 สมการเงินคือ 200x + 100y = 7,000 จึงนำ 100 คูณสมการ ① ตลอด เพื่อปั้นหน้า y ให้เป็น 100y เท่ากัน (ได้ 100x + 100y = 5,000)",
+                    "ขั้นที่ 3 นำสมการเงินลบสมการใหม่: (200x - 100x) = 7,000 - 5,000 ➔ 100x = 2,000 ย้าย 100 ไปหารได้ x = 20 ใบ (บัตร VIP)",
+                    "ขั้นที่ 4 แทน x = 20 ในสมการ ① (20 + y = 50) ย้าย 20 ไปลบได้ y = 30 ใบ (บัตรธรรมดา) ครับ"
+                ]
+            }
+        ];
+
+        /* ============================================================================
+           4. WEB AUDIO API SOUND EFFECTS ENGINE
+           ============================================================================ */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (Ctx) audioCtx = new Ctx();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playTone(freq, type, duration, delay = 0, vol = 0.14) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+                gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + delay);
+                osc.stop(ctx.currentTime + delay + duration);
+            } catch (e) {}
+        }
+
+        const SFX = {
+            click() { playTone(540, 'sine', 0.08, 0, 0.1); },
+            lifeline() {
+                playTone(620, 'triangle', 0.12, 0, 0.12);
+                playTone(920, 'triangle', 0.18, 0.08, 0.12);
+            },
+            correct() {
+                playTone(523.25, 'triangle', 0.14, 0, 0.15);
+                playTone(659.25, 'triangle', 0.14, 0.09, 0.15);
+                playTone(783.99, 'triangle', 0.25, 0.18, 0.16);
+            },
+            wrong() {
+                playTone(210, 'sawtooth', 0.2, 0, 0.11);
+                playTone(165, 'sawtooth', 0.28, 0.14, 0.11);
+            },
+            fanfare() {
+                [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => {
+                    playTone(n, 'triangle', 0.24, i * 0.11, 0.18);
+                });
+            }
+        };
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) SFX.click();
+        }
+
+        function showToast(msg, icon = '✅') {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-icon').textContent = icon;
+            document.getElementById('toast-message').textContent = msg;
+            box.classList.remove('hidden');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3500);
+        }
+
+        /* ============================================================================
+           5. APPLICATION STATE & STORAGE KEYS
+           ============================================================================ */
+        const STORAGE_URL_KEY = 'math_m3_gsheets_webapp_url';
+        const STORAGE_LOGS_KEY = 'math_m3_local_score_logs';
+
+        const appState = {
+            path: 'full', // 'full' | 'quiz_only' | 'team_battle'
+            player: {
+                fullName: '',
+                nickName: '',
+                classroom: '',
+                studentNo: ''
+            },
+            // Stage 1 Warmup
+            wuIndex: 0,
+            wuScore: 0,
+            wuAnswered: false,
+
+            // Stage 2 Quiz
+            quizIndex: 0,
+            quizScore: 0,
+            quizAnswered: false,
+            solo5050Used: false,
+            soloHintUsed: false,
+
+            // Team Battle
+            teamTurn: 'red',
+            teamRed: { score: 0, correct: 0, used5050: false, usedHint: false },
+            teamBlue: { score: 0, correct: 0, used5050: false, usedHint: false },
+
+            // Last Payload for Retry
+            lastPayload: null
+        };
+
+        /* ============================================================================
+           6. NAVIGATION & PATH INITIALIZATION
+           ============================================================================ */
+        function hideAllScreens() {
+            [
+                'screen-home',
+                'screen-warmup',
+                'screen-warmup-done',
+                'screen-quiz',
+                'screen-summary',
+                'screen-cheatsheet'
+            ].forEach(id => document.getElementById(id).classList.add('hidden'));
+        }
+
+        function goHome() {
+            SFX.click();
+            hideAllScreens();
+            document.getElementById('screen-home').classList.remove('hidden');
+            document.getElementById('btn-nav-home').classList.add('hidden');
+        }
+
+        function startLearningPath(pathType) {
+            SFX.click();
+            const errEl = document.getElementById('form-error-msg');
+
+            if (pathType !== 'team_battle') {
+                const fullName = document.getElementById('input-fullname').value.trim();
+                const nickName = document.getElementById('input-nickname').value.trim();
+                const classroom = document.getElementById('input-classroom').value.trim();
+                const studentNo = document.getElementById('input-student-no').value.trim();
+
+                if (!fullName || !classroom || !studentNo) {
+                    errEl.classList.remove('hidden');
+                    showToast('กรุณากรอกชื่อ-นามสกุล, ชั้นเรียน และเลขที่ก่อนเริ่มครับ', '⚠️');
+                    return;
+                }
+                errEl.classList.add('hidden');
+                appState.player = {
+                    fullName,
+                    nickName: nickName || fullName.split(' ')[0],
+                    classroom,
+                    studentNo
+                };
+            } else {
+                errEl.classList.add('hidden');
+            }
+
+            // Reset scores & flags
+            appState.path = pathType;
+            appState.wuIndex = 0;
+            appState.wuScore = 0;
+            appState.wuAnswered = false;
+
+            appState.quizIndex = 0;
+            appState.quizScore = 0;
+            appState.quizAnswered = false;
+            appState.solo5050Used = false;
+            appState.soloHintUsed = false;
+
+            appState.teamTurn = 'red';
+            appState.teamRed = { score: 0, correct: 0, used5050: false, usedHint: false };
+            appState.teamBlue = { score: 0, correct: 0, used5050: false, usedHint: false };
+
+            document.getElementById('btn-nav-home').classList.remove('hidden');
+
+            if (pathType === 'full') {
+                startStage1Warmup();
+            } else {
+                startStage2Quiz();
+            }
+        }
+
+        /* ============================================================================
+           7. STAGE 1: WARM-UP MINI-GAME LOGIC (9 QUESTIONS)
+           ============================================================================ */
+        function startStage1Warmup() {
+            hideAllScreens();
+            document.getElementById('screen-warmup').classList.remove('hidden');
+            document.getElementById('wu-player-label').textContent =
+                `ผู้เรียน: ${appState.player.fullName} (${appState.player.classroom} เลขที่ ${appState.player.studentNo})`;
+            renderWarmupQuestion();
+        }
+
+        function renderWarmupQuestion() {
+            const q = WARMUP_QUESTIONS[appState.wuIndex];
+            appState.wuAnswered = false;
+
+            document.getElementById('wu-explanation-box').classList.add('hidden');
+            document.getElementById('wu-base-badge').textContent = q.baseName;
+            document.getElementById('wu-base-tag').textContent = q.baseName;
+            document.getElementById('wu-progress-text').textContent = `${appState.wuIndex + 1} / 9`;
+            document.getElementById('wu-score-text').textContent = `${appState.wuScore} / 9`;
+
+            // Update 3-base stepper highlight
+            [1, 2, 3].forEach(b => {
+                const el = document.getElementById(`stepper-base-${b}`);
+                if (b === q.base) {
+                    el.className = "py-2 px-2 rounded-xl bg-cyan-600 text-white border border-cyan-300 shadow";
+                } else if (b < q.base) {
+                    el.className = "py-2 px-2 rounded-xl bg-emerald-900/70 text-emerald-300 border border-emerald-500/40";
+                } else {
+                    el.className = "py-2 px-2 rounded-xl bg-slate-800 text-slate-400 border border-slate-700";
+                }
+            });
+
+            // Optional Graph
+            const gBox = document.getElementById('wu-graph-box');
+            if (q.svg) {
+                gBox.innerHTML = q.svg;
+                gBox.classList.remove('hidden');
+            } else {
+                gBox.innerHTML = '';
+                gBox.classList.add('hidden');
+            }
+
+            document.getElementById('wu-question-text').textContent = q.question;
+
+            const btnColors = [
+                "choice-blue btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20",
+                "choice-yellow btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20",
+                "choice-green btn-arcade rounded-2xl p-4 sm:p-5 text-white font-bold text-lg sm:text-xl text-center border-2 border-white/20"
+            ];
+
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`wu-choice-${i}`);
+                btn.className = btnColors[i];
+                btn.disabled = false;
+                btn.textContent = q.choices[i];
+            }
+        }
+
+        function selectWarmupAnswer(idx) {
+            if (appState.wuAnswered) return;
+            appState.wuAnswered = true;
+
+            const q = WARMUP_QUESTIONS[appState.wuIndex];
+            const isCorrect = idx === q.correctIndex;
+
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`wu-choice-${i}`);
+                btn.disabled = true;
+                if (i === q.correctIndex) {
+                    btn.classList.add('ring-4', 'ring-white', 'scale-[1.03]');
+                } else if (i === idx) {
+                    btn.classList.add('animate-shake', 'ring-4', 'ring-rose-300');
+                } else {
+                    btn.classList.add('opacity-35');
+                }
+            }
+
+            const expBox = document.getElementById('wu-explanation-box');
+            const emoji = document.getElementById('wu-res-emoji');
+            const title = document.getElementById('wu-res-title');
+            const sub = document.getElementById('wu-res-sub');
+            const stepsUl = document.getElementById('wu-steps-list');
+            const nextBtn = document.getElementById('btn-wu-next');
+
+            if (isCorrect) {
+                appState.wuScore++;
+                SFX.correct();
+                expBox.classList.remove('border-rose-500');
+                expBox.classList.add('border-emerald-400');
+                emoji.textContent = '🎉';
+                title.className = 'text-lg sm:text-xl font-extrabold text-emerald-400';
+                title.textContent = 'เก่งมาก! ตอบถูกต้อง (+1 คะแนน)';
+            } else {
+                SFX.wrong();
+                expBox.classList.remove('border-emerald-400');
+                expBox.classList.add('border-rose-500');
+                emoji.textContent = '💡';
+                title.className = 'text-lg sm:text-xl font-extrabold text-rose-400';
+                title.textContent = 'ไม่เป็นไรครับ มาดูวิธีคิดข้อนี้กัน!';
+            }
+
+            document.getElementById('wu-score-text').textContent = `${appState.wuScore} / 9`;
+            sub.innerHTML = `คำตอบที่ถูกต้องคือ: <strong class="text-amber-300 underline">${q.choices[q.correctIndex]}</strong>`;
+
+            stepsUl.innerHTML = q.steps.map((s, i) => `
+                <li class="flex items-start gap-2.5 bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80">
+                    <span class="px-2 py-0.5 rounded bg-cyan-600 text-white font-bold text-xs mt-0.5 flex-shrink-0">ขั้นที่ ${i + 1}</span>
+                    <span>${s}</span>
+                </li>
+            `).join('');
+
+            nextBtn.textContent = appState.wuIndex === WARMUP_QUESTIONS.length - 1
+                ? 'สรุปด่านทบทวน & ลุยด่านที่ 2 ➔'
+                : 'ข้อถัดไป ➔';
+
+            expBox.classList.remove('hidden');
+            setTimeout(() => expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+        }
+
+        function nextWarmupQuestion() {
+            SFX.click();
+            if (appState.wuIndex < WARMUP_QUESTIONS.length - 1) {
+                appState.wuIndex++;
+                renderWarmupQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                hideAllScreens();
+                document.getElementById('screen-warmup-done').classList.remove('hidden');
+                document.getElementById('wu-done-score').textContent = `${appState.wuScore} / 9 คะแนน`;
+                SFX.fanfare();
+            }
+        }
+
+        /* ============================================================================
+           8. STAGE 2: POST-TEST QUIZ LOGIC (11 QUESTIONS / 12 POINTS)
+           ============================================================================ */
+        function startStage2Quiz() {
+            SFX.click();
+            hideAllScreens();
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            renderQuizQuestion();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateQuizHUD() {
+            const soloHud = document.getElementById('quiz-hud-solo');
+            const teamHud = document.getElementById('quiz-hud-team');
+            const btn5050 = document.getElementById('btn-ll-5050');
+            const btnHint = document.getElementById('btn-ll-hint');
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+
+            if (appState.path === 'team_battle') {
+                soloHud.classList.add('hidden');
+                teamHud.classList.remove('hidden');
+
+                const isRed = appState.teamTurn === 'red';
+                document.getElementById('team-red-pts').textContent = appState.teamRed.score;
+                document.getElementById('team-blue-pts').textContent = appState.teamBlue.score;
+                document.getElementById('team-red-sub').textContent = `ตอบถูก ${appState.teamRed.correct} ข้อ`;
+                document.getElementById('team-blue-sub').textContent = `ตอบถูก ${appState.teamBlue.correct} ข้อ`;
+
+                const redBox = document.getElementById('team-red-box');
+                const blueBox = document.getElementById('team-blue-box');
+                const pill = document.getElementById('team-turn-pill');
+
+                if (isRed) {
+                    redBox.className = "flex items-center justify-between px-4 py-2 rounded-xl bg-rose-950/90 border-2 border-rose-400 shadow-lg";
+                    blueBox.className = "flex items-center justify-between px-4 py-2 rounded-xl bg-blue-950/50 border-2 border-slate-700 opacity-65";
+                    pill.className = "inline-block mt-0.5 px-4 py-1 rounded-full font-extrabold text-sm bg-rose-600 text-white";
+                    pill.textContent = "🔴 ตาของทีมแดง!";
+                } else {
+                    blueBox.className = "flex items-center justify-between px-4 py-2 rounded-xl bg-blue-950/90 border-2 border-blue-400 shadow-lg";
+                    redBox.className = "flex items-center justify-between px-4 py-2 rounded-xl bg-rose-950/50 border-2 border-slate-700 opacity-65";
+                    pill.className = "inline-block mt-0.5 px-4 py-1 rounded-full font-extrabold text-sm bg-blue-600 text-white";
+                    pill.textContent = "🔵 ตาของทีมน้ำเงิน!";
+                }
+
+                const activeTeam = isRed ? appState.teamRed : appState.teamBlue;
+                btn5050.disabled = activeTeam.used5050 || appState.quizAnswered || q.isBoss;
+                btnHint.disabled = activeTeam.usedHint || appState.quizAnswered || q.isBoss;
+            } else {
+                soloHud.classList.remove('hidden');
+                teamHud.classList.add('hidden');
+                document.getElementById('quiz-solo-name').textContent = `${appState.player.fullName} (${appState.player.nickName})`;
+                document.getElementById('quiz-solo-meta').textContent = `ชั้น ${appState.player.classroom} • เลขที่ ${appState.player.studentNo}`;
+                document.getElementById('quiz-solo-score').textContent = `${appState.quizScore} / 12`;
+
+                const carryBox = document.getElementById('quiz-stage1-carry');
+                if (appState.path === 'full') {
+                    carryBox.classList.remove('hidden');
+                    document.getElementById('quiz-stage1-val').textContent = `${appState.wuScore} / 9`;
+                } else {
+                    carryBox.classList.add('hidden');
+                }
+
+                btn5050.disabled = appState.solo5050Used || appState.quizAnswered || q.isBoss;
+                btnHint.disabled = appState.soloHintUsed || appState.quizAnswered || q.isBoss;
+            }
+        }
+
+        function renderQuizQuestion() {
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+            appState.quizAnswered = false;
+
+            document.getElementById('quiz-explanation-box').classList.add('hidden');
+            document.getElementById('quiz-hint-box').classList.add('hidden');
+
+            document.getElementById('quiz-q-badge').textContent = `ข้อที่ ${appState.quizIndex + 1} / 11`;
+            document.getElementById('quiz-q-cat').textContent = q.category;
+
+            const bossTag = document.getElementById('quiz-boss-tag');
+            const qCard = document.getElementById('quiz-question-card');
+            const mcGrid = document.getElementById('quiz-mc-grid');
+            const bossPanel = document.getElementById('quiz-boss-panel');
+            const llBar = document.getElementById('quiz-lifelines-bar');
+
+            // Graph
+            const gBox = document.getElementById('quiz-graph-box');
+            if (q.svg) {
+                gBox.innerHTML = q.svg;
+                gBox.classList.remove('hidden');
+            } else {
+                gBox.innerHTML = '';
+                gBox.classList.add('hidden');
+            }
+
+            document.getElementById('quiz-question-text').textContent = q.question;
+
+            if (q.isBoss) {
+                bossTag.classList.remove('hidden');
+                qCard.className = "bg-amber-50 text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-4 border-amber-400";
+                document.getElementById('quiz-question-note').textContent = "เลือกเติมตัวเลขลงในช่องว่างทั้ง 4 บรรทัดให้ถูกต้อง (ข้อละ 0.5 คะแนน รวม 2 คะแนน)";
+                mcGrid.classList.add('hidden');
+                bossPanel.classList.remove('hidden');
+                llBar.classList.add('hidden');
+
+                // Reset Boss Selects
+                ['boss-step-1', 'boss-step-2', 'boss-step-3', 'boss-step-4'].forEach(id => {
+                    const sel = document.getElementById(id);
+                    sel.value = '';
+                    sel.disabled = false;
+                    sel.className = "px-3 py-1.5 rounded-xl bg-slate-950 border-2 border-amber-400 text-amber-300 font-extrabold focus:outline-none";
+                });
+                document.getElementById('btn-submit-boss').disabled = false;
+            } else {
+                bossTag.classList.add('hidden');
+                qCard.className = "bg-white text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-4 border-indigo-500/30";
+                document.getElementById('quiz-question-note').textContent = "เลือกคำตอบที่ถูกต้องที่สุดเพียงข้อเดียว (1 คะแนน)";
+                mcGrid.classList.remove('hidden');
+                bossPanel.classList.add('hidden');
+                llBar.classList.remove('hidden');
+
+                const baseClasses = [
+                    "choice-red btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20",
+                    "choice-blue btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20",
+                    "choice-yellow btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20",
+                    "choice-green btn-arcade rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 text-white border-2 border-white/20"
+                ];
+
+                for (let i = 0; i < 4; i++) {
+                    const btn = document.getElementById(`q-choice-${i}`);
+                    btn.className = baseClasses[i];
+                    btn.disabled = false;
+                    document.getElementById(`q-choice-text-${i}`).textContent = q.choices[i];
+                }
+            }
+
+            updateQuizHUD();
+        }
+
+        function useQuiz5050() {
+            if (appState.quizAnswered) return;
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+            if (q.isBoss) return;
+
+            if (appState.path === 'team_battle') {
+                const activeTeam = appState.teamTurn === 'red' ? appState.teamRed : appState.teamBlue;
+                if (activeTeam.used5050) return;
+                activeTeam.used5050 = true;
+            } else {
+                if (appState.solo5050Used) return;
+                appState.solo5050Used = true;
+            }
+
+            SFX.lifeline();
+            const wrong = [0, 1, 2, 3].filter(i => i !== q.correctIndex);
+            wrong.sort(() => Math.random() - 0.5);
+            wrong.slice(0, 2).forEach(idx => {
+                const btn = document.getElementById(`q-choice-${idx}`);
+                btn.disabled = true;
+                btn.classList.add('opacity-20');
+            });
+            updateQuizHUD();
+        }
+
+        function useQuizHint() {
+            if (appState.quizAnswered) return;
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+            if (q.isBoss) return;
+
+            if (appState.path === 'team_battle') {
+                const activeTeam = appState.teamTurn === 'red' ? appState.teamRed : appState.teamBlue;
+                if (activeTeam.usedHint) return;
+                activeTeam.usedHint = true;
+            } else {
+                if (appState.soloHintUsed) return;
+                appState.soloHintUsed = true;
+            }
+
+            SFX.lifeline();
+            document.getElementById('quiz-hint-text').textContent = q.hint;
+            document.getElementById('quiz-hint-box').classList.remove('hidden');
+            updateQuizHUD();
+        }
+
+        function selectQuizAnswer(selectedIdx) {
+            if (appState.quizAnswered) return;
+            appState.quizAnswered = true;
+
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+            const isCorrect = selectedIdx === q.correctIndex;
+
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`q-choice-${i}`);
+                btn.disabled = true;
+                if (i === q.correctIndex) {
+                    btn.classList.remove('opacity-20');
+                    btn.classList.add('ring-4', 'ring-white', 'scale-[1.02]');
+                } else if (i === selectedIdx) {
+                    btn.classList.add('animate-shake', 'ring-4', 'ring-rose-300');
+                } else {
+                    btn.classList.add('opacity-35');
+                }
+            }
+
+            if (isCorrect) {
+                SFX.correct();
+                if (appState.path === 'team_battle') {
+                    const activeTeam = appState.teamTurn === 'red' ? appState.teamRed : appState.teamBlue;
+                    activeTeam.score += 1;
+                    activeTeam.correct += 1;
+                } else {
+                    appState.quizScore += 1;
+                }
+            } else {
+                SFX.wrong();
+            }
+
+            updateQuizHUD();
+            showQuizExplanation(
+                isCorrect,
+                isCorrect ? 'ถูกต้อง! รับไป +1 คะแนน' : 'ยังไม่ถูกครับ มาดูเฉลยทีละบรรทัดกัน!',
+                q.choices[q.correctIndex],
+                q.steps
+            );
+        }
+
+        function submitBossQuestion() {
+            if (appState.quizAnswered) return;
+
+            const s1 = document.getElementById('boss-step-1').value;
+            const s2 = document.getElementById('boss-step-2').value;
+            const s3 = document.getElementById('boss-step-3').value;
+            const s4 = document.getElementById('boss-step-4').value;
+
+            if (!s1 || !s2 || !s3 || !s4) {
+                showToast('กรุณาเลือกเติมตัวเลขให้ครบทั้ง 4 ขั้นตอนก่อนส่งคำตอบครับ', '⚠️');
+                return;
+            }
+
+            appState.quizAnswered = true;
+            document.getElementById('btn-submit-boss').disabled = true;
+
+            const answers = [
+                { id: 'boss-step-1', val: s1, correct: '50' },
+                { id: 'boss-step-2', val: s2, correct: '100' },
+                { id: 'boss-step-3', val: s3, correct: '20' },
+                { id: 'boss-step-4', val: s4, correct: '30' }
+            ];
+
+            let correctSteps = 0;
+            answers.forEach(item => {
+                const el = document.getElementById(item.id);
+                el.disabled = true;
+                if (item.val === item.correct) {
+                    correctSteps++;
+                    el.className = "px-3 py-1.5 rounded-xl bg-emerald-950 border-2 border-emerald-400 text-emerald-300 font-extrabold";
+                } else {
+                    el.className = "px-3 py-1.5 rounded-xl bg-rose-950 border-2 border-rose-400 text-rose-300 font-extrabold";
+                }
+            });
+
+            // 0.5 points per step = max 2.0 points
+            const earned = correctSteps * 0.5;
+            if (earned > 0) {
+                SFX.correct();
+                if (appState.path === 'team_battle') {
+                    const activeTeam = appState.teamTurn === 'red' ? appState.teamRed : appState.teamBlue;
+                    activeTeam.score += earned;
+                    if (correctSteps === 4) activeTeam.correct += 1;
+                } else {
+                    appState.quizScore += earned;
+                }
+            } else {
+                SFX.wrong();
+            }
+
+            updateQuizHUD();
+            const q = QUIZ_QUESTIONS[appState.quizIndex];
+            showQuizExplanation(
+                correctSteps === 4,
+                `ทำถูก ${correctSteps} / 4 ขั้นตอน (ได้รับ +${earned} คะแนน)`,
+                'บัตร VIP (x) = 20 ใบ และบัตรธรรมดา (y) = 30 ใบ',
+                q.steps
+            );
+        }
+
+        function showQuizExplanation(isGood, titleText, correctAnswerText, stepsArr) {
+            const box = document.getElementById('quiz-explanation-box');
+            const emoji = document.getElementById('quiz-res-emoji');
+            const title = document.getElementById('quiz-res-title');
+            const sub = document.getElementById('quiz-res-sub');
+            const ul = document.getElementById('quiz-steps-list');
+            const nextBtn = document.getElementById('btn-quiz-next');
+
+            if (isGood) {
+                box.classList.remove('border-rose-500');
+                box.classList.add('border-emerald-400');
+                emoji.textContent = '🎉';
+                title.className = 'text-xl font-extrabold text-emerald-400';
+            } else {
+                box.classList.remove('border-emerald-400');
+                box.classList.add('border-rose-500');
+                emoji.textContent = '📝';
+                title.className = 'text-xl font-extrabold text-rose-400';
+            }
+
+            title.textContent = titleText;
+            sub.innerHTML = `คำตอบที่ถูกต้องคือ: <strong class="text-amber-300 underline">${correctAnswerText}</strong>`;
+
+            ul.innerHTML = stepsArr.map((st, idx) => `
+                <li class="flex items-start gap-2.5 bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80">
+                    <span class="px-2 py-0.5 rounded bg-indigo-600 text-white font-bold text-xs mt-0.5 flex-shrink-0">ขั้นที่ ${idx + 1}</span>
+                    <span>${st}</span>
+                </li>
+            `).join('');
+
+            nextBtn.textContent = appState.quizIndex === QUIZ_QUESTIONS.length - 1
+                ? 'ดูบัตรรายงานคะแนน & บันทึกผล 🏆'
+                : 'ข้อถัดไป ➔';
+
+            box.classList.remove('hidden');
+            setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+        }
+
+        function nextQuizQuestion() {
+            SFX.click();
+            if (appState.quizIndex < QUIZ_QUESTIONS.length - 1) {
+                appState.quizIndex++;
+                if (appState.path === 'team_battle') {
+                    appState.teamTurn = appState.teamTurn === 'red' ? 'blue' : 'red';
+                }
+                renderQuizQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                finishAndShowReport();
+            }
+        }
+
+        /* ============================================================================
+           9. FINAL REPORT CARD & GOOGLE SHEETS DATABASE SUBMISSION
+           ============================================================================ */
+        function finishAndShowReport() {
+            hideAllScreens();
+            document.getElementById('screen-summary').classList.remove('hidden');
+            SFX.fanfare();
+            launchConfetti();
+
+            const syncBanner = document.getElementById('sheets-sync-banner');
+            const soloCard = document.getElementById('sum-solo-card');
+            const teamCard = document.getElementById('sum-team-card');
+
+            if (appState.path === 'team_battle') {
+                syncBanner.classList.add('hidden');
+                soloCard.classList.add('hidden');
+                teamCard.classList.remove('hidden');
+
+                const r = appState.teamRed.score;
+                const b = appState.teamBlue.score;
+                document.getElementById('rep-team-red').textContent = r;
+                document.getElementById('rep-team-blue').textContent = b;
+
+                if (r > b) {
+                    document.getElementById('sum-title').textContent = '🏆 ทีมแดง (RED) ชนะเลิศ!';
+                } else if (b > r) {
+                    document.getElementById('sum-title').textContent = '🏆 ทีมน้ำเงิน (BLUE) ชนะเลิศ!';
+                } else {
+                    document.getElementById('sum-title').textContent = '🤝 เสมอกันอย่างสุดมันส์!';
+                }
+                document.getElementById('sum-subtitle').textContent = 'สรุปผลคะแนนการแข่งขันหน้าชั้นเรียน';
+                return;
+            }
+
+            // Solo Report Card (Path 1 or Path 2)
+            soloCard.classList.remove('hidden');
+            teamCard.classList.add('hidden');
+            syncBanner.classList.remove('hidden');
+
+            const isFull = appState.path === 'full';
+            const maxTotal = isFull ? 21 : 12;
+            const totalScore = (isFull ? appState.wuScore : 0) + appState.quizScore;
+            const pct = (totalScore / maxTotal) * 100;
+
+            let gradeLabel = 'ต้องทบทวนเพิ่มเติม 🌱';
+            if (pct >= 80) gradeLabel = 'ดีเยี่ยม (ระดับปรมาจารย์สมการ) 👑';
+            else if (pct >= 65) gradeLabel = 'ดีมาก (ผ่านเกณฑ์อย่างมั่นใจ) 🌟';
+            else if (pct >= 50) gradeLabel = 'ผ่านเกณฑ์ (ทำได้ดีครับ) 👍';
+
+            document.getElementById('sum-title').textContent = 'บัตรรายงานผลการเรียนรู้';
+            document.getElementById('sum-subtitle').textContent = isFull
+                ? 'เส้นทางที่ 1: ลุยครบ 2 ด่าน (คะแนนเต็ม 21 คะแนน)'
+                : 'เส้นทางที่ 2: แบบทดสอบท้ายบท (คะแนนเต็ม 12 คะแนน)';
+
+            document.getElementById('rep-fullname').textContent = `${appState.player.fullName} (${appState.player.nickName})`;
+            document.getElementById('rep-class-no').textContent = `ชั้น ${appState.player.classroom} • เลขที่ ${appState.player.studentNo}`;
+            document.getElementById('rep-wu-score').textContent = isFull ? `${appState.wuScore} / 9` : 'ข้ามด่าน';
+            document.getElementById('rep-quiz-score').textContent = `${appState.quizScore} / 12`;
+            document.getElementById('rep-total-score').textContent = `${totalScore} / ${maxTotal}`;
+            document.getElementById('rep-grade-label').textContent = gradeLabel;
+
+            const payload = {
+                timestamp: new Date().toLocaleString('th-TH'),
+                fullName: appState.player.fullName,
+                nickName: appState.player.nickName,
+                classroom: appState.player.classroom,
+                studentNo: appState.player.studentNo,
+                pathLabel: isFull ? 'ลุยครบ 2 ด่าน (21 คะแนน)' : 'ทำแบบทดสอบเลย (12 คะแนน)',
+                warmupScore: isFull ? `${appState.wuScore}/9` : 'ข้าม',
+                quizScore: `${appState.quizScore}/12`,
+                totalScore: `${totalScore}/${maxTotal}`,
+                gradeLabel
+            };
+
+            appState.lastPayload = payload;
+            saveToLocalLogs(payload);
+            sendScoreToGoogleSheets(payload);
+        }
+
+        async function sendScoreToGoogleSheets(payload) {
+            const url = (localStorage.getItem(STORAGE_URL_KEY) || '').trim();
+            const banner = document.getElementById('sheets-sync-banner');
+            const icon = document.getElementById('sync-icon');
+            const title = document.getElementById('sync-status-title');
+            const desc = document.getElementById('sync-status-desc');
+            const retryBtn = document.getElementById('btn-retry-sync');
+
+            if (!url) {
+                banner.className = "rounded-2xl p-4 border-2 border-amber-400 bg-amber-950/80 text-amber-100 flex items-center justify-between gap-3";
+                icon.textContent = "⚠️";
+                title.textContent = "ยังไม่ได้ใส่ลิงก์ Web App / บันทึกลงเครื่องแล้ว";
+                desc.textContent = "คุณครูสามารถกด 'เชื่อมต่อ Google Sheets' มุมขวาบนเพื่อวางลิงก์หรือดาวน์โหลดไฟล์ CSV ได้ทันที";
+                retryBtn.classList.add('hidden');
+                return;
+            }
+
+            banner.className = "rounded-2xl p-4 border-2 border-cyan-400 bg-cyan-950/80 text-cyan-100 flex items-center justify-between gap-3";
+            icon.textContent = "⏳";
+            title.textContent = "กำลังส่งคะแนนเข้า Google Sheets อัตโนมัติ...";
+            desc.textContent = "กรุณารอสักครู่ อย่าเพิ่งปิดหน้าจอ";
+            retryBtn.classList.add('hidden');
+
+            try {
+                // Using no-cors + text/plain avoids CORS preflight issues with Google Apps Script Web Apps
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                banner.className = "rounded-2xl p-4 border-2 border-emerald-400 bg-emerald-950/85 text-emerald-100 flex items-center justify-between gap-3";
+                icon.textContent = "✅";
+                title.textContent = "บันทึกคะแนนลง Google Sheets เรียบร้อยแล้ว";
+                desc.textContent = `ส่งข้อมูลของ ${payload.fullName} (${payload.classroom} เลขที่ ${payload.studentNo}) สำเร็จ`;
+                retryBtn.classList.remove('hidden');
+            } catch (err) {
+                banner.className = "rounded-2xl p-4 border-2 border-rose-400 bg-rose-950/85 text-rose-100 flex items-center justify-between gap-3";
+                icon.textContent = "❌";
+                title.textContent = "ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้ (บันทึกลงเครื่องสำรองแล้ว)";
+                desc.textContent = "สามารถกดปุ่ม 'ส่งอีกครั้ง' เมื่อมีสัญญาณเน็ต หรือดาวน์โหลด CSV ในเมนูครู";
+                retryBtn.classList.remove('hidden');
+            }
+        }
+
+        function retrySheetsSync() {
+            if (appState.lastPayload) {
+                sendScoreToGoogleSheets(appState.lastPayload);
+            }
+        }
+
+        /* ============================================================================
+           10. GOOGLE SHEETS MODAL, LOCAL LOGS & CSV EXPORT
+           ============================================================================ */
+        function openSheetsModal() {
+            SFX.click();
+            document.getElementById('modal-sheets').classList.remove('hidden');
+            const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || '';
+            document.getElementById('input-webapp-url').value = savedUrl;
+            updateWebAppStatusText(savedUrl);
+            renderLocalLogsTable();
+        }
+
+        function closeSheetsModal() {
+            SFX.click();
+            document.getElementById('modal-sheets').classList.add('hidden');
+        }
+
+        function updateWebAppStatusText(url) {
+            const st = document.getElementById('webapp-url-status');
+            const dot = document.getElementById('sheets-status-dot');
+            if (url && url.startsWith('https://script.google.com/')) {
+                st.innerHTML = `<span class="text-emerald-400 font-bold">✅ เชื่อมต่อแล้ว:</span> ระบบพร้อมส่งคะแนนเข้า Google Sheets อัตโนมัติเมื่อนักเรียนเล่นจบ`;
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+            } else {
+                st.innerHTML = `<span class="text-amber-300 font-bold">⚠️ ยังไม่ได้เชื่อมต่อ:</span> ระบบจะเก็บคะแนนสำรองไว้ในเครื่อง (Local Storage)`;
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block";
+            }
+        }
+
+        function saveWebAppUrl() {
+            SFX.click();
+            const url = document.getElementById('input-webapp-url').value.trim();
+            localStorage.setItem(STORAGE_URL_KEY, url);
+            updateWebAppStatusText(url);
+            showToast('บันทึกลิงก์ Google Apps Script เรียบร้อยแล้ว!', '💾');
+        }
+
+        async function testSheetsConnection() {
+            const url = document.getElementById('input-webapp-url').value.trim();
+            if (!url) {
+                showToast('กรุณาวางลิงก์ Web App URL ก่อนกดทดสอบครับ', '⚠️');
+                return;
+            }
+            localStorage.setItem(STORAGE_URL_KEY, url);
+            updateWebAppStatusText(url);
+
+            const testData = {
+                timestamp: new Date().toLocaleString('th-TH'),
+                fullName: 'ทดสอบระบบ (ครูผู้สอน)',
+                nickName: 'Admin',
+                classroom: 'ม.3/ทดสอบ',
+                studentNo: '0',
+                pathLabel: 'ทดสอบการเชื่อมต่อ',
+                warmupScore: '9/9',
+                quizScore: '12/12',
+                totalScore: '21/21',
+                gradeLabel: 'เชื่อมต่อสำเร็จ ✅'
+            };
+
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(testData)
+                });
+                showToast('ส่งข้อมูลทดสอบสำเร็จ! กรุณาเช็กแถวใหม่ใน Google Sheets ของคุณครูครับ', '🎉');
+            } catch (e) {
+                showToast('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาตรวจสอบลิงก์และสิทธิ์ Everyone', '❌');
+            }
+        }
+
+        function copyAppsScriptCode() {
+            const codeText = document.getElementById('apps-script-code').textContent;
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                SFX.lifeline();
+                showToast('คัดลอกโค้ด Apps Script (Code.gs) เรียบร้อยแล้ว!', '📋');
+            } catch (err) {
+                showToast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาลากคลุมโค้ดแล้วกด Ctrl+C', '⚠️');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function getLocalLogs() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_LOGS_KEY) || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveToLocalLogs(entry) {
+            const logs = getLocalLogs();
+            logs.unshift(entry);
+            localStorage.setItem(STORAGE_LOGS_KEY, JSON.stringify(logs.slice(0, 200)));
+        }
+
+        function renderLocalLogsTable() {
+            const logs = getLocalLogs();
+            document.getElementById('local-log-count').textContent = `(${logs.length} รายการ)`;
+            const tbody = document.getElementById('local-log-tbody');
+
+            if (!logs.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">ยังไม่มีประวัติการบันทึกคะแนนในเครื่องนี้</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(item => `
+                <tr class="hover:bg-slate-800/60">
+                    <td class="p-2 whitespace-nowrap text-slate-400">${item.timestamp}</td>
+                    <td class="p-2 font-semibold text-white">${item.fullName}</td>
+                    <td class="p-2 whitespace-nowrap">${item.classroom} / ${item.studentNo}</td>
+                    <td class="p-2 text-emerald-400">${item.warmupScore}</td>
+                    <td class="p-2 text-cyan-400">${item.quizScore}</td>
+                    <td class="p-2 font-bold text-amber-300">${item.totalScore}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearLocalLogs() {
+            localStorage.removeItem(STORAGE_LOGS_KEY);
+            renderLocalLogsTable();
+            showToast('ล้างประวัติคะแนนสำรองในเครื่องเรียบร้อยแล้ว', '🗑️');
+        }
+
+        function exportLocalScoresCSV() {
+            const logs = getLocalLogs();
+            if (!logs.length) {
+                showToast('ยังไม่มีข้อมูลคะแนนสำหรับดาวน์โหลดครับ', '⚠️');
+                return;
+            }
+
+            // Add UTF-8 BOM so Thai characters open cleanly in Microsoft Excel
+            let csv = '\uFEFFวัน-เวลาที่ส่ง,ชื่อ-นามสกุล,ชื่อเล่น,ชั้นเรียน,เลขที่,เส้นทางที่เลือก,คะแนนด่าน1_ทบทวน,คะแนนด่าน2_แบบทดสอบ,คะแนนรวม,ระดับผลการเรียน\n';
+            logs.forEach(r => {
+                const row = [
+                    r.timestamp, r.fullName, r.nickName, r.classroom, r.studentNo,
+                    r.pathLabel, r.warmupScore, r.quizScore, r.totalScore, r.gradeLabel
+                ].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',');
+                csv += row + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `คะแนนเกม_ระบบสมการเชิงเส้นสองตัวแปร_ม3_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            showToast('ดาวน์โหลดไฟล์ CSV เรียบร้อยแล้ว!', '📥');
+        }
+
+        /* ============================================================================
+           11. TEACHER CHEAT SHEET RENDERER
+           ============================================================================ */
+        function openCheatSheet() {
+            SFX.click();
+            hideAllScreens();
+            document.getElementById('screen-cheatsheet').classList.remove('hidden');
+            document.getElementById('btn-nav-home').classList.remove('hidden');
+            renderCheatSheet('quiz');
+        }
+
+        function renderCheatSheet(mode) {
+            const tabQuiz = document.getElementById('tab-cs-quiz');
+            const tabWu = document.getElementById('tab-cs-warmup');
+            const container = document.getElementById('cheatsheet-content');
+
+            if (mode === 'quiz') {
+                tabQuiz.className = "px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm";
+                tabWu.className = "px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-bold text-sm";
+
+                container.innerHTML = QUIZ_QUESTIONS.map((q, idx) => {
+                    const ansText = q.isBoss
+                        ? 'สมการ ①: 50 | ตัวคูณ: 100 | บัตร VIP (x) = 20 ใบ | บัตรธรรมดา (y) = 30 ใบ'
+                        : q.choices[q.correctIndex];
+                    return `
+                        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-bold text-xs">
+                                    ข้อที่ ${idx + 1} ${q.isBoss ? '👑 (2 คะแนน)' : '(1 คะแนน)'}
+                                </span>
+                                <span class="text-xs font-bold text-emerald-300 bg-emerald-950 border border-emerald-500/40 px-3 py-1 rounded-full">
+                                    เฉลย: ${ansText}
+                                </span>
+                            </div>
+                            <p class="font-bold text-white text-base sm:text-lg">${q.question}</p>
+                            <div class="bg-slate-800/80 rounded-xl p-3 space-y-1.5 font-sarabun text-sm text-slate-200">
+                                <div class="font-bold text-amber-300 text-xs">วิธีคิดทีละบรรทัด:</div>
+                                ${q.steps.map((s, sIdx) => `<div><strong>${sIdx + 1}.</strong> ${s}</div>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                tabWu.className = "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm";
+                tabQuiz.className = "px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-bold text-sm";
+
+                container.innerHTML = WARMUP_QUESTIONS.map((q, idx) => `
+                    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="px-3 py-1 rounded-lg bg-emerald-600 text-slate-950 font-extrabold text-xs">
+                                ด่าน 1 ข้อที่ ${idx + 1} (${q.baseName})
+                            </span>
+                            <span class="text-xs font-bold text-amber-300 bg-amber-950 border border-amber-500/40 px-3 py-1 rounded-full">
+                                เฉลย: ${q.choices[q.correctIndex]}
+                            </span>
+                        </div>
+                        <p class="font-bold text-white text-base sm:text-lg">${q.question}</p>
+                        <div class="bg-slate-800/80 rounded-xl p-3 space-y-1.5 font-sarabun text-sm text-slate-200">
+                            ${q.steps.map((s, sIdx) => `<div><strong>${sIdx + 1}.</strong> ${s}</div>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /* ============================================================================
+           12. CONFETTI CELEBRATION & INITIALIZATION
+           ============================================================================ */
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+            const pieces = Array.from({ length: 100 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 5,
+                h: Math.random() * 6 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vy: Math.random() * 3 + 2,
+                vx: (Math.random() - 0.5) * 2,
+                rot: Math.random() * 360,
+                vRot: (Math.random() - 0.5) * 8
+            }));
+
+            let frame = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vRot;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rot * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < 180) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || '';
+            updateWebAppStatusText(savedUrl);
+        });
+    </script>
+</body>
+</html>
