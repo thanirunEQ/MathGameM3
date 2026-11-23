@@ -121,24 +121,25 @@
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2.5">
             <!-- Brand Logo & Title -->
             <button onclick="goHome()" class="flex items-center gap-2.5 text-left group focus:outline-none">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center shadow-lg group-hover:scale-105 transition flex-shrink-0">
-                    <span class="text-xl font-extrabold text-white">∑</span>
-                </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
-                        ศึกถอดรหัสสมการ ม.3
-                    </h1>
-                    <p class="text-xs text-emerald-300">ระบบสมการเชิงเส้นสองตัวแปร • ฉบับเข้าใจง่าย</p>
-                </div>
-            </button>
+                <!-- Google Sheets Config Button (Protected by Teacher PIN) -->
+                <button onclick="requestTeacherAccess('sheets')" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-xs sm:text-sm font-semibold text-emerald-300 transition">
+                    <span id="lock-icon-sheets">🔒</span>
+                    <span>เชื่อมต่อ Google Sheets</span>
+                    <span id="sheets-status-dot" class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                </button>
 
-            <!-- Teacher & Classroom Controls -->
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Font Size Adjuster [ ก- | 100% | ก+ ] -->
-                <div class="flex items-center bg-slate-800 border border-cyan-500/50 rounded-xl overflow-hidden shadow-inner" title="ปรับขนาดตัวอักษร">
-                    <button onclick="changeFontScale(-10)" class="px-2.5 py-1.5 hover:bg-slate-700 active:bg-slate-600 text-cyan-300 font-extrabold text-xs sm:text-sm transition" aria-label="ลดขนาดตัวอักษร">
-                        ก-
-                    </button>
+                <!-- Teacher Cheat Sheet Button (Protected by Teacher PIN) -->
+                <button onclick="requestTeacherAccess('cheatsheet')" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/50 text-xs sm:text-sm font-semibold text-indigo-200 transition">
+                    <span id="lock-icon-cheatsheet">🔒</span>
+                    <span class="hidden sm:inline">คู่มือเฉลยสำหรับครู</span>
+                    <span class="sm:hidden">เฉลยครู</span>
+                </button>
+
+                <!-- Quick Re-Lock Teacher Mode Button (Visible when unlocked) -->
+                <button id="btn-relock-teacher" onclick="relockTeacherMode()" class="hidden items-center gap-1 px-2.5 py-2 rounded-xl bg-amber-950/90 hover:bg-amber-900 border border-amber-500/50 text-xs font-bold text-amber-300 transition" title="ล็อคสิทธิ์ครูกลับทันที">
+                    <span>🔓</span>
+                    <span class="hidden md:inline">ล็อคกลับ</span>
+                </button>
                     <button onclick="resetFontScale()" id="font-scale-label" class="px-2 py-1.5 text-white font-bold text-xs border-x border-slate-700 hover:bg-slate-700/60 transition min-w-[3.1rem] text-center" title="คลิกเพื่อรีเซ็ตเป็น 100%">
                         100%
                     </button>
@@ -710,8 +711,8 @@
 
                 <!-- Bottom Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                    <button onclick="openCheatSheet()" class="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base shadow-[0_4px_0_#3730a3] btn-arcade">
-                        📖 ดูเฉลยละเอียดทุกข้อ
+                    <button onclick="requestTeacherAccess('cheatsheet')" class="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base shadow-[0_4px_0_#3730a3] btn-arcade">
+                        🔒 ดูเฉลยละเอียดทุกข้อ (สำหรับครู)
                     </button>
                     <button onclick="goHome()" class="px-6 py-3.5 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-base btn-arcade">
                         🏠 กลับหน้าหลัก
@@ -732,9 +733,14 @@
                             รวมเฉลยละเอียดทีละบรรทัดทั้ง <strong>ด่านที่ 1 มินิเกมทบทวนพื้นฐาน (9 ข้อ)</strong> และ <strong>ด่านที่ 2 แบบทดสอบท้ายบท (11 ข้อ)</strong>
                         </p>
                     </div>
-                    <button onclick="goHome()" class="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm btn-arcade">
-                        ← กลับหน้าหลัก
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="relockTeacherMode()" class="px-4 py-2.5 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-slate-950 font-bold text-sm btn-arcade">
+                            🔒 ล็อคหน้าจอครู
+                        </button>
+                        <button onclick="goHome()" class="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm btn-arcade">
+                            ← กลับหน้าหลัก
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Tabs for Warm-Up vs Post-Test -->
@@ -766,33 +772,71 @@
                         ตั้งค่าฐานข้อมูล Google Sheets (สำหรับครู)
                     </h3>
                 </div>
-                <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-
-            <!-- Web App URL Input Section -->
-            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3">
-                <label class="block text-sm font-bold text-white">
-                    1. วางลิงก์ Google Apps Script Web App URL ที่นี่:
-                </label>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <input id="input-webapp-url" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-600 text-emerald-300 text-sm focus:border-emerald-400 focus:outline-none font-sarabun">
-                    <button onclick="saveWebAppUrl()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm btn-arcade">
-                        💾 บันทึกลิงก์
+                <div class="flex items-center gap-2">
+                    <button onclick="relockTeacherMode()" class="px-3 py-1.5 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-slate-950 font-bold text-xs btn-arcade">
+                        🔒 ล็อคสิทธิ์ครู
                     </button>
-                    <button onclick="testSheetsConnection()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm btn-arcade">
-                        🧪 ทดสอบส่งข้อมูล
-                    </button>
-                </div>
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    <p id="webapp-url-status" class="text-xs text-slate-400 font-sarabun">
-                        สถานะปัจจุบัน: ยังไม่ได้เชื่อมต่อ (ระบบจะบันทึกคะแนนสำรองไว้ในเครื่องอัตโนมัติ)
-                    </p>
-                    <button onclick="copyStudentShareLink()" class="px-3 py-1.5 rounded-xl bg-cyan-900/80 hover:bg-cyan-800 border border-cyan-500/50 text-cyan-200 font-bold text-xs transition">
-                        🔗 คัดลอกลิงก์เกมพร้อมฝัง API ให้นักเรียน
-                    </button>
+                    <button onclick="closeSheetsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ==================== 7. TEACHER PIN LOCK MODAL (PIN: 6311) ==================== -->
+    <div id="modal-teacher-pin" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="pin-modal-card" class="bg-slate-900 border-2 border-amber-400/80 rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-pop space-y-5 text-center">
+            <div class="flex justify-between items-start">
+                <div class="w-8"></div>
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-3xl mx-auto shadow-lg">
+                    🔐
+                </div>
+                <button onclick="closePinModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xl leading-none flex items-center justify-center">&times;</button>
+            </div>
+
+            <div class="space-y-1">
+                <h3 class="text-xl font-extrabold text-white">พื้นที่เฉพาะคุณครูผู้สอน</h3>
+                <p id="pin-target-desc" class="text-xs sm:text-sm text-amber-200 font-sarabun">
+                    กรุณากรอกรหัส PIN 4 หลักเพื่อปลดล็อค
+                </p>
+            </div>
+
+            <!-- PIN Input Box -->
+            <div class="space-y-2">
+                <input id="input-teacher-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+                    onkeydown="if(event.key==='Enter') verifyTeacherPin()"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4); document.getElementById('pin-error-msg').classList.add('hidden');"
+                    class="w-44 mx-auto block text-center tracking-[0.55em] text-2xl sm:text-3xl font-extrabold py-2.5 px-4 rounded-2xl bg-slate-950 border-2 border-indigo-500 text-amber-300 focus:border-amber-400 focus:outline-none">
+                <p id="pin-error-msg" class="hidden text-rose-400 text-xs sm:text-sm font-bold animate-pop">
+                    ❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง
+                </p>
+            </div>
+
+            <!-- Touch-Friendly Numeric Keypad -->
+            <div class="grid grid-cols-3 gap-2 max-w-[240px] mx-auto font-extrabold text-lg">
+                <button type="button" onclick="appendPinDigit('1')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">1</button>
+                <button type="button" onclick="appendPinDigit('2')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">2</button>
+                <button type="button" onclick="appendPinDigit('3')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">3</button>
+                <button type="button" onclick="appendPinDigit('4')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">4</button>
+                <button type="button" onclick="appendPinDigit('5')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">5</button>
+                <button type="button" onclick="appendPinDigit('6')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">6</button>
+                <button type="button" onclick="appendPinDigit('7')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">7</button>
+                <button type="button" onclick="appendPinDigit('8')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">8</button>
+                <button type="button" onclick="appendPinDigit('9')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">9</button>
+                <button type="button" onclick="clearPinInput()" class="py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-500/40 text-xs font-bold transition">ล้าง</button>
+                <button type="button" onclick="appendPinDigit('0')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white border border-slate-700 transition">0</button>
+                <button type="button" onclick="backspacePinDigit()" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-amber-300 border border-slate-700 text-sm font-bold transition">⌫</button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2.5 pt-1">
+                <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">
+                    ยกเลิก
+                </button>
+                <button type="button" onclick="verifyTeacherPin()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-slate-950 font-extrabold text-sm shadow-[0_4px_0_#065f46] btn-arcade">
+                    🔓 ปลดล็อค
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1285,6 +1329,126 @@
         const STORAGE_URL_KEY = 'math_m3_gsheets_webapp_url';
         const STORAGE_LOGS_KEY = 'math_m3_local_score_logs';
         const STORAGE_FONT_SCALE_KEY = 'math_m3_font_scale_pct';
+        const SESSION_TEACHER_UNLOCK_KEY = 'math_m3_teacher_unlocked';
+        const TEACHER_PIN_CODE = '6311';
+
+        let pendingTeacherTarget = null; // 'sheets' | 'cheatsheet'
+
+        function isTeacherUnlocked() {
+            return sessionStorage.getItem(SESSION_TEACHER_UNLOCK_KEY) === 'true';
+        }
+
+        function updateTeacherLockUI() {
+            const unlocked = isTeacherUnlocked();
+            const iconSheets = document.getElementById('lock-icon-sheets');
+            const iconCheat = document.getElementById('lock-icon-cheatsheet');
+            const btnRelock = document.getElementById('btn-relock-teacher');
+
+            if (iconSheets) iconSheets.textContent = unlocked ? '⚙️' : '🔒';
+            if (iconCheat) iconCheat.textContent = unlocked ? '📖' : '🔒';
+            if (btnRelock) {
+                if (unlocked) {
+                    btnRelock.classList.remove('hidden');
+                    btnRelock.classList.add('flex');
+                } else {
+                    btnRelock.classList.add('hidden');
+                    btnRelock.classList.remove('flex');
+                }
+            }
+        }
+
+        function requestTeacherAccess(target) {
+            SFX.click();
+            if (isTeacherUnlocked()) {
+                if (target === 'sheets') openSheetsModal();
+                else if (target === 'cheatsheet') openCheatSheet();
+                return;
+            }
+
+            pendingTeacherTarget = target;
+            const descEl = document.getElementById('pin-target-desc');
+            descEl.textContent = target === 'sheets'
+                ? 'กรอกรหัส PIN 4 หลัก เพื่อเข้าตั้งค่าการเชื่อมต่อ Google Sheets'
+                : 'กรอกรหัส PIN 4 หลัก เพื่อเปิดดูคู่มือเฉลยสำหรับครู';
+
+            const inputEl = document.getElementById('input-teacher-pin');
+            inputEl.value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            document.getElementById('modal-teacher-pin').classList.remove('hidden');
+            setTimeout(() => inputEl.focus(), 60);
+        }
+
+        function closePinModal() {
+            SFX.click();
+            document.getElementById('modal-teacher-pin').classList.add('hidden');
+            pendingTeacherTarget = null;
+        }
+
+        function appendPinDigit(digit) {
+            SFX.click();
+            const inputEl = document.getElementById('input-teacher-pin');
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            if (inputEl.value.length < 4) {
+                inputEl.value += digit;
+            }
+            if (inputEl.value.length === 4) {
+                setTimeout(verifyTeacherPin, 120);
+            }
+        }
+
+        function backspacePinDigit() {
+            SFX.click();
+            const inputEl = document.getElementById('input-teacher-pin');
+            inputEl.value = inputEl.value.slice(0, -1);
+            document.getElementById('pin-error-msg').classList.add('hidden');
+        }
+
+        function clearPinInput() {
+            SFX.click();
+            const inputEl = document.getElementById('input-teacher-pin');
+            inputEl.value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            inputEl.focus();
+        }
+
+        function verifyTeacherPin() {
+            const inputEl = document.getElementById('input-teacher-pin');
+            const errEl = document.getElementById('pin-error-msg');
+            const cardEl = document.getElementById('pin-modal-card');
+            const entered = inputEl.value.trim();
+
+            if (entered === TEACHER_PIN_CODE) {
+                SFX.lifeline();
+                sessionStorage.setItem(SESSION_TEACHER_UNLOCK_KEY, 'true');
+                updateTeacherLockUI();
+                const target = pendingTeacherTarget;
+                document.getElementById('modal-teacher-pin').classList.add('hidden');
+                pendingTeacherTarget = null;
+                showToast('ปลดล็อคสิทธิ์คุณครูเรียบร้อยแล้ว!', '🔓');
+
+                if (target === 'sheets') openSheetsModal();
+                else if (target === 'cheatsheet') openCheatSheet();
+            } else {
+                SFX.wrong();
+                errEl.classList.remove('hidden');
+                inputEl.value = '';
+                cardEl.classList.remove('animate-shake');
+                void cardEl.offsetWidth; // trigger reflow to restart shake animation
+                cardEl.classList.add('animate-shake');
+                inputEl.focus();
+            }
+        }
+
+        function relockTeacherMode() {
+            SFX.click();
+            sessionStorage.removeItem(SESSION_TEACHER_UNLOCK_KEY);
+            updateTeacherLockUI();
+            closeSheetsModal();
+            if (!document.getElementById('screen-cheatsheet').classList.contains('hidden')) {
+                goHome();
+            }
+            showToast('ล็อคเมนูสำหรับครูเรียบร้อยแล้ว', '🔒');
+        }
 
         let currentFontScale = 100;
 
@@ -2311,6 +2475,9 @@
 
             const savedUrl = localStorage.getItem(STORAGE_URL_KEY) || '';
             updateWebAppStatusText(savedUrl);
+
+            // 3. Initialize Teacher Lock Icons State
+            updateTeacherLockUI();
         });
     </script>
 </body>
